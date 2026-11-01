@@ -57,7 +57,6 @@ footer{background:var(--dk);color:var(--dkt);text-align:center;padding:18px;font
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script>
 const {useState,useEffect,useRef}=React;
 const AT={class:'className',autoplay:'autoPlay',playsinline:'playsInline'};
@@ -67,7 +66,7 @@ class EB extends React.Component{constructor(p){super(p);this.state={e:null}}sta
 try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'}catch(e){}
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-function usePersist(k,d){const[s,set]=useState(()=>ld(k,d));useEffect(()=>sv(k,s),[s]);return[s,set]}
+function usePersist(k,d){const[s,set]=useState(()=>ld(k,d));useEffect(()=>{const id=setTimeout(()=>sv(k,s),400);return()=>clearTimeout(id)},[s]);return[s,set]}
 
 /* ===== Motor FALPD: extração de padrões + classificador logístico com aprendizagem online (sem LLM) ===== */
 const STOP=new Set('que uma uns umas dos das nos nas por para com como mas aos foi ser sao ele ela seu sua lhe mais ja tambem pelo pela isso este esta esse essa entre sobre'.split(' '));
@@ -115,7 +114,7 @@ function Upload({title,desc,items,multi,onAdd,onDel}){
 function Home({go,m}){return h`<div><section class="hero"><${Logo} s=${110}/><div><h1>Corrige literatura <span>com padrões</span>, não com palpites.</h1>
 <p>A FALPD lê os teus critérios e as obras do autor, mede cada resposta em sete parâmetros e atribui cotação. Cada feedback teu ensina o motor a ser mais exato — sem recorrer a qualquer IA externa.</p>
 <div class="row"><button class="btn" onClick=${()=>go('corr')}>Começar a corrigir</button><button class="btn g" onClick=${()=>go('dash')}>Ver turmas</button></div></div></section>
-<div class="grid">${[['📋','Critérios','Carrega o PDF dos critérios do ano corrente.'],['📚','Contexto por teste','Em cada teste, PDFs do autor: estilo, recursos e subentendidos. Reutilizáveis entre testes do mesmo autor.'],['📝','Testes/Exames','Cada teste tem turma associada e média da turma.'],['📷','Fotos','Webcam ou fotografias das respostas manuscritas.'],['🧠','Aprendizagem','Motor com '+m.n+' feedback(s) acumulado(s).'],['🏫','Turmas','Alunos e notas num dashboard.']].map(([i,t,d])=>h`<div class="card" key=${t}><div class="ic">${i}</div><h3>${t}</h3><span class="mu">${d}</span></div>`)}</div></div>`}
+<div class="grid">${[['📋','Critérios','Carrega o PDF dos critérios do ano corrente.'],['📚','Contexto por teste','Em cada teste, PDFs do autor: estilo, recursos e subentendidos. Reutilizáveis entre testes do mesmo autor.'],['📝','Testes/Exames','Cada teste tem turma associada e média da turma.'],['🧩','Teste por grupos','O PDF do teste é separado em grupos e questões, cada uma com resposta-modelo.'],['🧠','Aprendizagem','Motor com '+m.n+' feedback(s) acumulado(s).'],['🏫','Turmas','Alunos e notas num dashboard.']].map(([i,t,d])=>h`<div class="card" key=${t}><div class="ic">${i}</div><h3>${t}</h3><span class="mu">${d}</span></div>`)}</div></div>`}
 
 function Dash({cls,setCls}){
   const[ci,setCi]=useState(0),[nm,setNm]=useState(''),[cn,setCn]=useState('');const c=cls[ci]||cls[0];
@@ -131,16 +130,6 @@ function Dash({cls,setCls}){
   <td><input type="number" min="0" max="20" step="0.1" value=${s.nota??''} onInput=${e=>upd(x=>({...x,students:x.students.map(y=>y.id===s.id?{...y,nota:e.target.value}:y)}))}/></td>
   <td><button class="btn k s" onClick=${()=>upd(x=>({...x,students:x.students.filter(y=>y.id!==s.id)}))}>Remover</button></td></tr>`)}</table>
   <div class="row" style="margin-top:12px"><input placeholder="Nome do novo aluno" value=${nm} onInput=${e=>setNm(e.target.value)}/><button class="btn" onClick=${()=>{if(nm.trim()){upd(x=>({...x,students:[...x.students,{id:Date.now(),name:nm.trim(),nota:null}]}));setNm('')}}}>+ Aluno</button></div></div>`}</div>`;
-}
-
-function Cam({onShot}){
-  const v=useRef(),st=useRef();const[on,setOn]=useState(false),[err,setErr]=useState('');
-  const stop=()=>{if(st.current){st.current.getTracks().forEach(t=>t.stop());st.current=null}if(v.current)v.current.srcObject=null;setOn(false)};
-  const start=async()=>{try{const s=await navigator.mediaDevices.getUserMedia({video:true});st.current=s;v.current.srcObject=s;setOn(true);setErr('')}catch(e){setErr('Webcam indisponível — anexa as fotografias dos testes.')}};
-  const shot=()=>{if(!v.current||!v.current.videoWidth)return;const c=document.createElement('canvas');c.width=v.current.videoWidth;c.height=v.current.videoHeight;c.getContext('2d').drawImage(v.current,0,0);onShot(c.toDataURL('image/jpeg',.8))};
-  useEffect(()=>()=>{if(st.current)st.current.getTracks().forEach(t=>t.stop())},[]);
-  return h`<div><video ref=${v} autoplay playsinline muted class=${on?'on':''}></video>${err&&h`<div class="note">${err}</div>`}
-  <div class="row" style="margin-top:8px">${on?h`<button class="btn" onClick=${shot}>📸 Capturar</button><button class="btn g" onClick=${stop}>Desligar</button>`:h`<button class="btn g" onClick=${start}>🎥 Usar webcam</button>`}</div></div>`;
 }
 
 const ctxOf=(t,all)=>[...t.ctx,...(t.reuse?all.filter(o=>o.id!==t.id&&norm(o.author)===norm(t.author)).flatMap(o=>o.ctx):[])].map(d=>d.text).join(' ');
@@ -166,40 +155,60 @@ function NewTest({cls,tests,onCreate}){
   <${FilePick} label="Contexto: PDFs de obras do autor (estilo, recursos expressivos, subentendidos)" multi=${true} items=${cx} onAdd=${d=>setCx(o=>[...o,d])} onDel=${i=>setCx(o=>o.filter((_,j)=>j!==i))}/>
   ${prev>0&&h`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" style="width:auto" checked=${re} onChange=${e=>setRe(e.target.checked)}/>Reutilizar ${prev} PDF(s) de contexto de testes anteriores de ${au.trim()}</label>`}
   ${!cls.length&&h`<div class="note">Cria primeiro uma turma no Dashboard.</div>`}
-  <div style="margin-top:14px"><button class="btn" disabled=${!ok} onClick=${()=>onCreate({id:Date.now(),name:n.trim(),classId:ci,author:au.trim(),ctx:cx,paper:tp[0]||null,reuse:re,grades:{},date:new Date().toLocaleDateString('pt-PT')})}>Criar teste e começar a corrigir</button></div></div>`;
+  <div style="margin-top:14px"><button class="btn" disabled=${!ok} onClick=${()=>onCreate({id:Date.now(),name:n.trim(),classId:ci,author:au.trim(),ctx:cx,paper:tp[0]||null,groups:tp[0]?parseTest(tp[0].text):[],answers:{},reuse:re,grades:{},date:new Date().toLocaleDateString('pt-PT')})}>Criar teste e começar a corrigir</button></div></div>`;
+}
+
+function parseTest(raw){
+  const T=raw.replace(/\s+/g,' ').trim();
+  const heads=T.split(/(?=\bGRUPO\s+[IVX]+\b)/).filter(p=>/^GRUPO\s+[IVX]+/.test(p));
+  let n=0;
+  return(heads.length?heads:[T]).map((p,gi)=>{
+    const hm=p.match(/^GRUPO\s+[IVX]+/),body=hm?p.slice(hm[0].length):p;
+    const re=/(?:^|\s)(\d{1,2}(?:\.\d{1,2})?)\.\s+(?=[A-ZÀ-Ú«“"])/g,mk=[];let r;
+    while((r=re.exec(body)))mk.push({i:r.index,l:r[1],e:re.lastIndex});
+    const qs=mk.map((k,i)=>{const tx=body.slice(k.e,i+1<mk.length?mk[i+1].i:body.length).trim(),pm=tx.match(/(\d{1,3})\s*(?:pontos|pts)/i);return{id:'q'+(++n),label:k.l,text:tx,max:pm?+pm[1]:10,model:''}});
+    return{id:'g'+gi,name:hm?hm[0].replace(/\s+/,' '):'Teste',intro:(mk.length?body.slice(0,mk[0].i):body).trim(),qs};
+  });
 }
 
 function Correct({cls,setCls,crit,m,setM,tests,setTests,tid,setTid}){
   const t=tests.find(x=>x.id===tid);
-  const[si,setSi]=useState(''),[ref,setRef]=useState(''),[ans,setAns]=useState(''),[max,setMax]=useState(10),[photos,setPhotos]=useState([]),[res,setRes]=useState(null),[ps,setPs]=useState(-1),[ocrSt,setOcrSt]=useState('');
-  const c=t&&cls.find(k=>k.id===t.classId),ctx=t?ctxOf(t,tests):'';
+  const[si,setSi]=useState(''),[ed,setEd]=useState(false),[rs,setRs]=useState({}),[saved,setSaved]=useState(false);
+  const c=t&&cls.find(k=>k.id===t.classId),ctx=t?ctxOf(t,tests):'',G=(t&&t.groups)||[];
   const extra=t&&t.reuse?tests.filter(o=>o.id!==t.id&&norm(o.author)===norm(t.author)).reduce((a,o)=>a+o.ctx.length,0):0;
-  const addPh=e=>{[...e.target.files].forEach(f=>{const r=new FileReader();r.onload=()=>setPhotos(p=>[...p,r.result]);r.readAsDataURL(f)});e.target.value=''};
-  const ocr=async()=>{if(ps<0)return;setOcrSt('A preparar o reconhecimento…');try{const img=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=photos[ps]});const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;const g=cv.getContext('2d');g.filter='grayscale(1) contrast(1.6)';g.drawImage(img,0,0);const r=await Tesseract.recognize(cv,'por',{logger:q=>{if(q.status==='recognizing text')setOcrSt('A ler… '+Math.round(q.progress*100)+'%')}});setAns(a=>(a?a+'\n':'')+r.data.text.trim());setOcrSt('Texto lido. Revê e corrige abaixo o que estiver errado.')}catch(e){setOcrSt('Reconhecimento indisponível neste ambiente (funciona na versão alojada, em https). Escreve a transcrição manualmente.')}};
-  const run=()=>{const x=feats(ans,ref,ctx,crit),p=pred(m,x);setRes({x,p,score:Math.round(p*max*2)/2,fb:null})};
-  const fb=y=>{setM(train(m,res.x,y));setRes({...res,fb:y})};
-  const save=()=>{if(!si)return;const old=t.grades[si]||{p:0,m:0},g={p:old.p+res.score,m:old.m+max},nt=gn(g).toFixed(1);
-    setCls(cls.map(k=>k.id===t.classId?{...k,students:k.students.map(s=>String(s.id)===si?{...s,nota:nt}:s)}:k));
-    setTests(tests.map(o=>o.id===t.id?{...o,grades:{...o.grades,[si]:g}}:o));setRes({...res,saved:1})};
-  return h`<div><h2>Correção</h2><p class="mu">Escolhe um teste ou cria um novo (turma, autor e contexto). Depois fotografa as respostas, lê o texto, corrige a transcrição e avalia.</p>
-  <div class="tabs">${tests.map(x=>h`<span key=${x.id} class=${'pill'+(x.id===tid?' on':'')} onClick=${()=>{setTid(x.id);setSi('');setRes(null)}}>${x.name}</span>`)}<span class=${'pill'+(!t?' on':'')} onClick=${()=>setTid(null)}>+ Novo teste</span></div>
+  const upT=f=>setTests(tests.map(o=>o.id===t.id?f(o):o));
+  const upG=(gid,p)=>upT(o=>({...o,groups:o.groups.map(g=>g.id===gid?{...g,...p}:g)}));
+  const upQ=(gid,qid,p)=>upT(o=>({...o,groups:o.groups.map(g=>g.id===gid?{...g,qs:g.qs.map(q=>q.id===qid?{...q,...p}:q)}:g)}));
+  const ans=qid=>((t.answers||{})[si]||{})[qid]||'';
+  const setAns=(qid,v)=>upT(o=>({...o,answers:{...(o.answers||{}),[si]:{...((o.answers||{})[si]||{}),[qid]:v}}}));
+  const pick=v=>{setSi(v);setRs({});setSaved(false)};
+  const run=()=>{const r={};G.forEach(g=>g.qs.forEach(q=>{const a=ans(q.id);if(q.model&&q.model.trim()&&a.trim()){const x=feats(a,q.model,ctx+' '+g.intro,crit),p=pred(m,x);r[q.id]={x,p,score:Math.round(p*q.max*2)/2,fb:null}}}));setRs(r);setSaved(false)};
+  const fb=(qid,y)=>{setM(train(m,rs[qid].x,y));setRs({...rs,[qid]:{...rs[qid],fb:y}})};
+  const ev=G.flatMap(g=>g.qs).filter(q=>rs[q.id]),P=ev.reduce((a,q)=>a+rs[q.id].score,0),M=ev.reduce((a,q)=>a+q.max,0);
+  const save=()=>{const nt=(P/M*20).toFixed(1);setCls(cls.map(k=>k.id===t.classId?{...k,students:k.students.map(s=>String(s.id)===si?{...s,nota:nt}:s)}:k));upT(o=>({...o,grades:{...o.grades,[si]:{p:P,m:M}}}));setSaved(true)};
+  const newQ=g=>upG(g.id,{qs:[...g.qs,{id:'q'+Date.now(),label:String(g.qs.length+1),text:'',max:10,model:''}]});
+  return h`<div><h2>Correção</h2><p class="mu">Cria um teste a partir do PDF: a FALPD separa os grupos e as questões. Escreve uma vez a resposta-modelo de cada questão e, aluno a aluno, cola ou escreve as respostas.</p>
+  <div class="tabs">${tests.map(x=>h`<span key=${x.id} class=${'pill'+(x.id===tid?' on':'')} onClick=${()=>{setTid(x.id);pick('')}}>${x.name}</span>`)}<span class=${'pill'+(!t?' on':'')} onClick=${()=>setTid(null)}>+ Novo teste</span></div>
   ${!t?h`<${NewTest} cls=${cls} tests=${tests} onCreate=${x=>{setTests([...tests,x]);setTid(x.id)}}/>`:h`<div>
   <div class="note"><b>${t.name}</b> · ${c?c.name:'turma removida'} · ${t.author||'sem autor'} · contexto: ${t.ctx.length} PDF(s)${extra>0?' + '+extra+' reutilizado(s)':''}</div>
   ${!crit&&h`<div class="note">Sem critérios carregados (menu Critérios) a precisão desce.</div>`}
-  <div class="two"><div class="card"><b>📷 Fotos das respostas</b><${Cam} onShot=${d=>setPhotos(p=>[...p,d])}/>
-  <label>Ou anexar fotografias</label><input type="file" accept="image/*" multiple onChange=${addPh}/>
-  <div class="thumbs">${photos.map((p,i)=>h`<img key=${i} src=${p} alt=${'Foto '+(i+1)} style=${{borderColor:ps===i?'var(--or)':''}} onClick=${()=>setPs(i)}/>`)}</div>
-  ${photos.length>0&&h`<p class="mu">Clica numa foto para a selecionar e lê o texto dela.</p><div class="row"><button class="btn" disabled=${ps<0} onClick=${ocr}>🔎 Ler texto da foto</button><button class="btn k s" disabled=${ps<0} onClick=${()=>{setPhotos(photos.filter((_,j)=>j!==ps));setPs(-1)}}>Remover foto</button></div>${ocrSt&&h`<div class="note">${ocrSt}</div>`}`}
-  ${t.paper&&h`<label>Enunciado carregado</label><div class="mu" style="max-height:120px;overflow:auto">${t.paper.text.slice(0,900)}…</div>`}</div>
-  <div class="card"><div class="row"><div><label>Aluno</label><select value=${si} onChange=${e=>setSi(e.target.value)}><option value="">—</option>${(c?c.students:[]).map(s=>h`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select></div>
-  <div><label>Cotação máx. da pergunta</label><input type="number" min="1" value=${max} onInput=${e=>setMax(+e.target.value||1)}/></div></div>
-  <label>Resposta-modelo / elementos esperados</label><textarea value=${ref} onInput=${e=>setRef(e.target.value)} placeholder="Ex.: A ironia em Eça evidencia a crítica à burguesia lisboeta…"></textarea>
-  <label>Resposta lida da foto (corrige se houver erros)</label><textarea value=${ans} onInput=${e=>setAns(e.target.value)}></textarea>
-  <div style="margin-top:12px"><button class="btn" onClick=${run} disabled=${!ref.trim()||!ans.trim()}>Avaliar resposta</button></div></div></div>
-  ${res&&h`<div class="card" style="margin-top:16px"><div class="row"><div><div class="score">${res.score}<small class="mu"> / ${max}</small></div><span class="mu">Confiança de correção: ${(res.p*100).toFixed(0)}%</span></div>
-  <div style="flex:2;min-width:260px">${FN.map((f,i)=>h`<div key=${f} style="margin:6px 0"><span class="mu">${f} · peso ${m.w[i].toFixed(2)}</span><div class="bar"><i style=${{width:Math.round(res.x[i]*100)+'%'}}></i></div></div>`)}</div></div>
-  <div class="row" style="margin-top:14px">${res.fb==null?h`<span><b>A avaliação está certa?</b></span><button class="btn" onClick=${()=>fb(1)}>✔ Resposta correta</button><button class="btn k" onClick=${()=>fb(0)}>✘ Resposta incorreta</button>`:h`<span class="mu">Feedback registado — o motor já aprendeu (${m.n} no total).</span>`}
-  <button class="btn g" onClick=${save} disabled=${!si||res.saved}>${res.saved?'Nota guardada':'Somar ao teste do aluno'}</button></div></div>`}</div>`}</div>`;
+  <div class="card"><div class="row"><div><label>Aluno</label><select value=${si} onChange=${e=>pick(e.target.value)}><option value="">— escolhe —</option>${(c?c.students:[]).map(s=>h`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select></div>
+  <button class="btn" disabled=${!si||!G.length} onClick=${run}>Avaliar teste</button>
+  <button class="btn g" onClick=${()=>setEd(!ed)}>${ed?'Concluir edição':'Editar estrutura'}</button>
+  ${t.paper&&!G.length&&h`<button class="btn k" onClick=${()=>upT(o=>({...o,groups:parseTest(o.paper.text)}))}>Separar questões do PDF</button>`}</div>
+  ${ev.length>0&&h`<div class="row" style="margin-top:12px"><div><span class="score">${(P/M*20).toFixed(1)}</span><span class="mu"> / 20 · ${P}/${M} pts</span></div><button class="btn" disabled=${saved} onClick=${save}>${saved?'Nota guardada':'Guardar nota do aluno'}</button></div>`}</div>
+  ${!G.length&&h`<div class="note">Sem questões. ${t.paper?'Carrega em "Separar questões do PDF" (só funciona com PDFs com texto, não digitalizações).':'Este teste não tem PDF: usa "Editar estrutura" para criar grupos e questões.'}</div>`}
+  ${G.map(g=>h`<div key=${g.id} style="margin-top:22px">${ed?h`<div class="row"><input value=${g.name} onInput=${e=>upG(g.id,{name:e.target.value})}/><button class="btn k s" onClick=${()=>upT(o=>({...o,groups:o.groups.filter(x=>x.id!==g.id)}))}>Remover grupo</button></div>`:h`<h3 style="color:var(--or)">${g.name}</h3>`}
+  ${(g.intro||ed)&&h`<details><summary class="mu">Texto / enunciado do grupo</summary>${ed?h`<textarea value=${g.intro} onInput=${e=>upG(g.id,{intro:e.target.value})}></textarea>`:h`<div class="mu" style="white-space:pre-wrap">${g.intro}</div>`}</details>`}
+  ${g.qs.map(q=>{const r=rs[q.id];return h`<div class="card" key=${q.id} style="margin-top:12px"><div class="row">${ed?h`<input value=${q.label} onInput=${e=>upQ(g.id,q.id,{label:e.target.value})} style="max-width:80px"/>`:h`<b style="flex:0 0 auto">Questão ${q.label}</b>`}
+  <div style="max-width:120px"><input type="number" min="1" title="Cotação" value=${q.max} onInput=${e=>upQ(g.id,q.id,{max:+e.target.value||1})}/></div><span class="mu" style="flex:0 0 auto">pontos</span>
+  ${ed&&h`<button class="btn k s" onClick=${()=>upG(g.id,{qs:g.qs.filter(x=>x.id!==q.id)})}>Remover</button>`}</div>
+  ${ed?h`<textarea value=${q.text} onInput=${e=>upQ(g.id,q.id,{text:e.target.value})}></textarea>`:h`<div style="white-space:pre-wrap;margin:8px 0">${q.text}</div>`}
+  <div class="two"><div><label>Resposta-modelo (igual para todos os alunos)</label><textarea value=${q.model} onInput=${e=>upQ(g.id,q.id,{model:e.target.value})}></textarea></div>
+  <div><label>Resposta do aluno</label>${si?h`<textarea value=${ans(q.id)} onInput=${e=>setAns(q.id,e.target.value)}></textarea>`:h`<div class="note">Escolhe um aluno.</div>`}</div></div>
+  ${r&&h`<div class="row" style="margin-top:10px"><span class="score" style="font-size:28px">${r.score}/${q.max}</span><span class="mu">confiança ${(r.p*100).toFixed(0)}%</span>${r.fb==null?h`<button class="btn s" onClick=${()=>fb(q.id,1)}>✔ Correta</button><button class="btn k s" onClick=${()=>fb(q.id,0)}>✘ Incorreta</button>`:h`<span class="mu">Feedback registado (${m.n} no total)</span>`}</div>`}</div>`})}
+  ${ed&&h`<div style="margin-top:10px"><button class="btn g s" onClick=${()=>newQ(g)}>+ Questão</button></div>`}</div>`)}
+  ${ed&&h`<div style="margin-top:16px"><button class="btn g" onClick=${()=>upT(o=>({...o,groups:[...(o.groups||[]),{id:'g'+Date.now(),name:'Grupo',intro:'',qs:[]}]}))}>+ Grupo</button></div>`}</div>`}</div>`;
 }
 
 function Tests({tests,setTests,cls,setTid,go}){
