@@ -59,7 +59,11 @@ footer{background:var(--dk);color:var(--dkt);text-align:center;padding:18px;font
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script>
-const {useState,useEffect,useRef}=React;const h=htm.bind(React.createElement);
+const {useState,useEffect,useRef}=React;
+const AT={class:'className',autoplay:'autoPlay',playsinline:'playsInline'};
+const ce=(t,p,...c)=>{if(p){const q={};for(const k in p)q[AT[k]||k]=p[k];if(typeof q.style==='string')q.style=Object.fromEntries(q.style.split(';').filter(s=>s.includes(':')).map(s=>{const[k,...v]=s.split(':');return[k.trim().replace(/-([a-z])/g,(_,x)=>x.toUpperCase()),v.join(':').trim()]}));p=q}return React.createElement(t,p,...c)};
+const h=htm.bind(ce);
+class EB extends React.Component{constructor(p){super(p);this.state={e:null}}static getDerivedStateFromError(e){return{e}}render(){return this.state.e?h`<main><div class="note">Ocorreu um erro: ${String(this.state.e.message||this.state.e)}</div><button class="btn" onClick=${()=>this.setState({e:null})}>Tentar de novo</button></main>`:this.props.children}}
 try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'}catch(e){}
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
@@ -179,7 +183,7 @@ function App(){
   <main>${pg==='inicio'?h`<${Home} go=${setPg} m=${m}/>`:pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls}/>`:pg==='crit'?U('crit','Critérios de avaliação','Carrega o PDF dos critérios da disciplina do ano corrente.',false):pg==='ctx'?U('ctx','Contexto','Carrega PDFs de obras do autor para analisar estilo, recursos expressivos e mensagens subentendidas.',true):pg==='teste'?U('test','Teste / Exame','Carrega o PDF do teste a corrigir.',false):h`<${Correct} cls=${cls} setCls=${setCls} docs=${docs} m=${m} setM=${setM}/>`}</main>
   <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados.</footer><//>`;
 }
-ReactDOM.createRoot(document.getElementById('root')).render(h`<${App}/>`);
+ReactDOM.createRoot(document.getElementById('root')).render(h`<${EB}><${App}/><//>`);
 </script>
 </body>
 </html>
