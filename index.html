@@ -101,7 +101,7 @@ const Logo=({s=40})=>h`<svg width=${s} height=${s} viewBox="0 0 64 64" role="img
 <g fill="#1b120c" stroke="#fff" stroke-width="1.5"><circle cx="14" cy="30" r="3"/><circle cx="22" cy="38" r="3"/><circle cx="26" cy="28" r="3"/><circle cx="26" cy="46" r="3"/><circle cx="38" cy="28" r="3"/><circle cx="46" cy="36" r="3"/><circle cx="52" cy="28" r="3"/><circle cx="42" cy="46" r="3"/></g>
 <path d="M40 6l3 5 5 1-4 4 1 5-5-3-5 3 1-5-4-4 5-1z" fill="#ff6a00" stroke="#1b120c" stroke-width="1.5" transform="translate(-3 -2) scale(.8)"/></svg>`;
 
-const PAGES=[['inicio','Início'],['dash','Dashboard'],['crit','Critérios'],['ctx','Contexto'],['teste','Teste/Exame'],['corr','Fotos e correção']];
+const PAGES=[['inicio','Início'],['dash','Dashboard'],['crit','Critérios'],['tests','Testes/Exames'],['corr','Correção']];
 
 function Upload({title,desc,items,multi,onAdd,onDel}){
   const[busy,setBusy]=useState(false),[err,setErr]=useState('');const r=useRef();
@@ -115,7 +115,7 @@ function Upload({title,desc,items,multi,onAdd,onDel}){
 function Home({go,m}){return h`<div><section class="hero"><${Logo} s=${110}/><div><h1>Corrige literatura <span>com padrões</span>, não com palpites.</h1>
 <p>A FALPD lê os teus critérios e as obras do autor, mede cada resposta em sete parâmetros e atribui cotação. Cada feedback teu ensina o motor a ser mais exato — sem recorrer a qualquer IA externa.</p>
 <div class="row"><button class="btn" onClick=${()=>go('corr')}>Começar a corrigir</button><button class="btn g" onClick=${()=>go('dash')}>Ver turmas</button></div></div></section>
-<div class="grid">${[['📋','Critérios','Carrega o PDF dos critérios do ano corrente.'],['📚','Contexto','PDFs das obras do autor: estilo, recursos expressivos e subentendidos.'],['📝','Teste/Exame','O enunciado fica disponível durante a correção.'],['📷','Fotos','Webcam ou fotografias das respostas manuscritas.'],['🧠','Aprendizagem','Motor com '+m.n+' feedback(s) acumulado(s).'],['🏫','Turmas','Alunos e notas num dashboard.']].map(([i,t,d])=>h`<div class="card" key=${t}><div class="ic">${i}</div><h3>${t}</h3><span class="mu">${d}</span></div>`)}</div></div>`}
+<div class="grid">${[['📋','Critérios','Carrega o PDF dos critérios do ano corrente.'],['📚','Contexto por teste','Em cada teste, PDFs do autor: estilo, recursos e subentendidos. Reutilizáveis entre testes do mesmo autor.'],['📝','Testes/Exames','Cada teste tem turma associada e média da turma.'],['📷','Fotos','Webcam ou fotografias das respostas manuscritas.'],['🧠','Aprendizagem','Motor com '+m.n+' feedback(s) acumulado(s).'],['🏫','Turmas','Alunos e notas num dashboard.']].map(([i,t,d])=>h`<div class="card" key=${t}><div class="ic">${i}</div><h3>${t}</h3><span class="mu">${d}</span></div>`)}</div></div>`}
 
 function Dash({cls,setCls}){
   const[ci,setCi]=useState(0),[nm,setNm]=useState(''),[cn,setCn]=useState('');const c=cls[ci]||cls[0];
@@ -134,55 +134,98 @@ function Dash({cls,setCls}){
 }
 
 function Cam({onShot}){
-  const v=useRef();const[on,setOn]=useState(false),[err,setErr]=useState('');
-  const start=async()=>{try{v.current.srcObject=await navigator.mediaDevices.getUserMedia({video:true});setOn(true);setErr('')}catch(e){setErr('Webcam indisponível — anexa as fotografias dos testes.')}};
-  const stop=()=>{v.current.srcObject&&v.current.srcObject.getTracks().forEach(t=>t.stop());setOn(false)};
-  const shot=()=>{const c=document.createElement('canvas');c.width=v.current.videoWidth;c.height=v.current.videoHeight;c.getContext('2d').drawImage(v.current,0,0);onShot(c.toDataURL('image/jpeg',.8))};
-  useEffect(()=>stop,[]);
+  const v=useRef(),st=useRef();const[on,setOn]=useState(false),[err,setErr]=useState('');
+  const stop=()=>{if(st.current){st.current.getTracks().forEach(t=>t.stop());st.current=null}if(v.current)v.current.srcObject=null;setOn(false)};
+  const start=async()=>{try{const s=await navigator.mediaDevices.getUserMedia({video:true});st.current=s;v.current.srcObject=s;setOn(true);setErr('')}catch(e){setErr('Webcam indisponível — anexa as fotografias dos testes.')}};
+  const shot=()=>{if(!v.current||!v.current.videoWidth)return;const c=document.createElement('canvas');c.width=v.current.videoWidth;c.height=v.current.videoHeight;c.getContext('2d').drawImage(v.current,0,0);onShot(c.toDataURL('image/jpeg',.8))};
+  useEffect(()=>()=>{if(st.current)st.current.getTracks().forEach(t=>t.stop())},[]);
   return h`<div><video ref=${v} autoplay playsinline muted class=${on?'on':''}></video>${err&&h`<div class="note">${err}</div>`}
   <div class="row" style="margin-top:8px">${on?h`<button class="btn" onClick=${shot}>📸 Capturar</button><button class="btn g" onClick=${stop}>Desligar</button>`:h`<button class="btn g" onClick=${start}>🎥 Usar webcam</button>`}</div></div>`;
 }
 
-function Correct({cls,setCls,docs,m,setM}){
-  const[ci,setCi]=useState(0),[si,setSi]=useState(''),[ref,setRef]=useState(''),[ans,setAns]=useState(''),[max,setMax]=useState(20),[photos,setPhotos]=useState([]),[res,setRes]=useState(null),[sel,setSel]=useState(-1),[ocrSt,setOcrSt]=useState('');
-  const ctx=docs.ctx.map(d=>d.text).join(' '),crit=docs.crit.map(d=>d.text).join(' ');const c=cls[ci];
+const ctxOf=(t,all)=>[...t.ctx,...(t.reuse?all.filter(o=>o.id!==t.id&&norm(o.author)===norm(t.author)).flatMap(o=>o.ctx):[])].map(d=>d.text).join(' ');
+const gn=g=>g.m?g.p/g.m*20:0;
+
+function FilePick({label,multi,items,onAdd,onDel}){
+  const[busy,setBusy]=useState(false),[err,setErr]=useState('');
+  const go=async e=>{setBusy(true);setErr('');try{for(const f of e.target.files)onAdd({name:f.name,text:(await pdfText(f)).slice(0,150000)})}catch(x){setErr('Não foi possível ler o PDF.')}setBusy(false);e.target.value=''};
+  return h`<div><label>${label}</label><input type="file" accept="application/pdf" multiple=${multi} onChange=${go}/>${busy&&h`<span class="mu">A ler PDF…</span>`}${err&&h`<span class="mu">${err}</span>`}
+  <div class="thumbs">${items.map((d,i)=>h`<span class="pill" key=${i} title="Remover" onClick=${()=>onDel(i)}>${d.name} ✕</span>`)}</div></div>`;
+}
+
+function NewTest({cls,tests,onCreate}){
+  const[n,setN]=useState(''),[ci,setCi]=useState(cls[0]?cls[0].id:0),[au,setAu]=useState(''),[cx,setCx]=useState([]),[tp,setTp]=useState([]),[re,setRe]=useState(true);
+  const authors=[...new Set(tests.map(t=>t.author).filter(Boolean))];
+  const prev=au.trim()?tests.filter(t=>norm(t.author)===norm(au)).reduce((a,t)=>a+t.ctx.length,0):0;
+  const ok=n.trim()&&cls.length;
+  return h`<div class="card"><h3>Novo teste</h3>
+  <div class="row"><div><label>Nome do teste</label><input value=${n} onInput=${e=>setN(e.target.value)} placeholder="Ex.: Teste 2 — Os Lusíadas"/></div>
+  <div><label>Turma associada</label><select value=${ci} onChange=${e=>setCi(+e.target.value)}>${cls.map(k=>h`<option key=${k.id} value=${k.id}>${k.name}</option>`)}</select></div>
+  <div><label>Autor</label><input list="aut" value=${au} onInput=${e=>setAu(e.target.value)} placeholder="Ex.: Luís de Camões"/><datalist id="aut">${authors.map(a=>h`<option key=${a} value=${a}/>`)}</datalist></div></div>
+  <${FilePick} label="PDF do teste/exame (opcional)" items=${tp} onAdd=${d=>setTp([d])} onDel=${()=>setTp([])}/>
+  <${FilePick} label="Contexto: PDFs de obras do autor (estilo, recursos expressivos, subentendidos)" multi=${true} items=${cx} onAdd=${d=>setCx(o=>[...o,d])} onDel=${i=>setCx(o=>o.filter((_,j)=>j!==i))}/>
+  ${prev>0&&h`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" style="width:auto" checked=${re} onChange=${e=>setRe(e.target.checked)}/>Reutilizar ${prev} PDF(s) de contexto de testes anteriores de ${au.trim()}</label>`}
+  ${!cls.length&&h`<div class="note">Cria primeiro uma turma no Dashboard.</div>`}
+  <div style="margin-top:14px"><button class="btn" disabled=${!ok} onClick=${()=>onCreate({id:Date.now(),name:n.trim(),classId:ci,author:au.trim(),ctx:cx,paper:tp[0]||null,reuse:re,grades:{},date:new Date().toLocaleDateString('pt-PT')})}>Criar teste e começar a corrigir</button></div></div>`;
+}
+
+function Correct({cls,setCls,crit,m,setM,tests,setTests,tid,setTid}){
+  const t=tests.find(x=>x.id===tid);
+  const[si,setSi]=useState(''),[ref,setRef]=useState(''),[ans,setAns]=useState(''),[max,setMax]=useState(10),[photos,setPhotos]=useState([]),[res,setRes]=useState(null),[ps,setPs]=useState(-1),[ocrSt,setOcrSt]=useState('');
+  const c=t&&cls.find(k=>k.id===t.classId),ctx=t?ctxOf(t,tests):'';
+  const extra=t&&t.reuse?tests.filter(o=>o.id!==t.id&&norm(o.author)===norm(t.author)).reduce((a,o)=>a+o.ctx.length,0):0;
   const addPh=e=>{[...e.target.files].forEach(f=>{const r=new FileReader();r.onload=()=>setPhotos(p=>[...p,r.result]);r.readAsDataURL(f)});e.target.value=''};
-  const ocr=async()=>{if(sel<0)return;setOcrSt('A preparar o reconhecimento…');try{const img=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=photos[sel]});const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.filter='grayscale(1) contrast(1.6)';g.drawImage(img,0,0);const r=await Tesseract.recognize(c,'por',{logger:m=>{if(m.status==='recognizing text')setOcrSt('A ler… '+Math.round(m.progress*100)+'%')}});setAns(a=>(a?a+'\n':'')+r.data.text.trim());setOcrSt('Texto lido. Revê e corrige abaixo o que estiver errado.')}catch(e){setOcrSt('Reconhecimento indisponível neste ambiente (funciona na versão alojada, em https). Escreve a transcrição manualmente.')}};
+  const ocr=async()=>{if(ps<0)return;setOcrSt('A preparar o reconhecimento…');try{const img=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=photos[ps]});const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;const g=cv.getContext('2d');g.filter='grayscale(1) contrast(1.6)';g.drawImage(img,0,0);const r=await Tesseract.recognize(cv,'por',{logger:q=>{if(q.status==='recognizing text')setOcrSt('A ler… '+Math.round(q.progress*100)+'%')}});setAns(a=>(a?a+'\n':'')+r.data.text.trim());setOcrSt('Texto lido. Revê e corrige abaixo o que estiver errado.')}catch(e){setOcrSt('Reconhecimento indisponível neste ambiente (funciona na versão alojada, em https). Escreve a transcrição manualmente.')}};
   const run=()=>{const x=feats(ans,ref,ctx,crit),p=pred(m,x);setRes({x,p,score:Math.round(p*max*2)/2,fb:null})};
   const fb=y=>{setM(train(m,res.x,y));setRes({...res,fb:y})};
-  const save=()=>{if(!si)return;setCls(cls.map((k,i)=>i===ci?{...k,students:k.students.map(s=>String(s.id)===si?{...s,nota:(res.score/max*20).toFixed(1)}:s)}:k));setRes({...res,saved:1})};
-  return h`<div><h2>Fotos e correção</h2><p class="mu">Fotografa ou anexa as respostas, lê o texto da foto, corrige a transcrição se for preciso e deixa a FALPD avaliar. Depois confirma ou corrige — o motor aprende.</p>
-  ${!docs.crit.length&&h`<div class="note">Sem critérios nem contexto carregados, o motor só usa a resposta-modelo. Carrega os PDFs para maior precisão.</div>`}
+  const save=()=>{if(!si)return;const old=t.grades[si]||{p:0,m:0},g={p:old.p+res.score,m:old.m+max},nt=gn(g).toFixed(1);
+    setCls(cls.map(k=>k.id===t.classId?{...k,students:k.students.map(s=>String(s.id)===si?{...s,nota:nt}:s)}:k));
+    setTests(tests.map(o=>o.id===t.id?{...o,grades:{...o.grades,[si]:g}}:o));setRes({...res,saved:1})};
+  return h`<div><h2>Correção</h2><p class="mu">Escolhe um teste ou cria um novo (turma, autor e contexto). Depois fotografa as respostas, lê o texto, corrige a transcrição e avalia.</p>
+  <div class="tabs">${tests.map(x=>h`<span key=${x.id} class=${'pill'+(x.id===tid?' on':'')} onClick=${()=>{setTid(x.id);setSi('');setRes(null)}}>${x.name}</span>`)}<span class=${'pill'+(!t?' on':'')} onClick=${()=>setTid(null)}>+ Novo teste</span></div>
+  ${!t?h`<${NewTest} cls=${cls} tests=${tests} onCreate=${x=>{setTests([...tests,x]);setTid(x.id)}}/>`:h`<div>
+  <div class="note"><b>${t.name}</b> · ${c?c.name:'turma removida'} · ${t.author||'sem autor'} · contexto: ${t.ctx.length} PDF(s)${extra>0?' + '+extra+' reutilizado(s)':''}</div>
+  ${!crit&&h`<div class="note">Sem critérios carregados (menu Critérios) a precisão desce.</div>`}
   <div class="two"><div class="card"><b>📷 Fotos das respostas</b><${Cam} onShot=${d=>setPhotos(p=>[...p,d])}/>
   <label>Ou anexar fotografias</label><input type="file" accept="image/*" multiple onChange=${addPh}/>
-  <div class="thumbs">${photos.map((p,i)=>h`<img key=${i} src=${p} alt=${'Foto '+(i+1)} style=${{borderColor:sel===i?'var(--or)':''}} onClick=${()=>setSel(i)}/>`)}</div>
-  ${photos.length>0&&h`<p class="mu">Clica numa foto para a selecionar e lê o texto dela.</p><div class="row"><button class="btn" disabled=${sel<0} onClick=${ocr}>🔎 Ler texto da foto</button><button class="btn k s" disabled=${sel<0} onClick=${()=>{setPhotos(photos.filter((_,j)=>j!==sel));setSel(-1)}}>Remover foto</button></div>${ocrSt&&h`<div class="note">${ocrSt}</div>`}`}
-  ${docs.test.length>0&&h`<label>Enunciado carregado</label><div class="mu" style="max-height:120px;overflow:auto">${docs.test[0].text.slice(0,900)}…</div>`}</div>
-  <div class="card"><div class="row"><div><label>Turma</label><select value=${ci} onChange=${e=>{setCi(+e.target.value);setSi('')}}>${cls.map((k,i)=>h`<option key=${k.id} value=${i}>${k.name}</option>`)}</select></div>
-  <div><label>Aluno</label><select value=${si} onChange=${e=>setSi(e.target.value)}><option value="">—</option>${(c?c.students:[]).map(s=>h`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select></div>
-  <div><label>Cotação máx.</label><input type="number" min="1" value=${max} onInput=${e=>setMax(+e.target.value||1)}/></div></div>
+  <div class="thumbs">${photos.map((p,i)=>h`<img key=${i} src=${p} alt=${'Foto '+(i+1)} style=${{borderColor:ps===i?'var(--or)':''}} onClick=${()=>setPs(i)}/>`)}</div>
+  ${photos.length>0&&h`<p class="mu">Clica numa foto para a selecionar e lê o texto dela.</p><div class="row"><button class="btn" disabled=${ps<0} onClick=${ocr}>🔎 Ler texto da foto</button><button class="btn k s" disabled=${ps<0} onClick=${()=>{setPhotos(photos.filter((_,j)=>j!==ps));setPs(-1)}}>Remover foto</button></div>${ocrSt&&h`<div class="note">${ocrSt}</div>`}`}
+  ${t.paper&&h`<label>Enunciado carregado</label><div class="mu" style="max-height:120px;overflow:auto">${t.paper.text.slice(0,900)}…</div>`}</div>
+  <div class="card"><div class="row"><div><label>Aluno</label><select value=${si} onChange=${e=>setSi(e.target.value)}><option value="">—</option>${(c?c.students:[]).map(s=>h`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select></div>
+  <div><label>Cotação máx. da pergunta</label><input type="number" min="1" value=${max} onInput=${e=>setMax(+e.target.value||1)}/></div></div>
   <label>Resposta-modelo / elementos esperados</label><textarea value=${ref} onInput=${e=>setRef(e.target.value)} placeholder="Ex.: A ironia em Eça evidencia a crítica à burguesia lisboeta…"></textarea>
   <label>Resposta lida da foto (corrige se houver erros)</label><textarea value=${ans} onInput=${e=>setAns(e.target.value)}></textarea>
   <div style="margin-top:12px"><button class="btn" onClick=${run} disabled=${!ref.trim()||!ans.trim()}>Avaliar resposta</button></div></div></div>
   ${res&&h`<div class="card" style="margin-top:16px"><div class="row"><div><div class="score">${res.score}<small class="mu"> / ${max}</small></div><span class="mu">Confiança de correção: ${(res.p*100).toFixed(0)}%</span></div>
   <div style="flex:2;min-width:260px">${FN.map((f,i)=>h`<div key=${f} style="margin:6px 0"><span class="mu">${f} · peso ${m.w[i].toFixed(2)}</span><div class="bar"><i style=${{width:Math.round(res.x[i]*100)+'%'}}></i></div></div>`)}</div></div>
   <div class="row" style="margin-top:14px">${res.fb==null?h`<span><b>A avaliação está certa?</b></span><button class="btn" onClick=${()=>fb(1)}>✔ Resposta correta</button><button class="btn k" onClick=${()=>fb(0)}>✘ Resposta incorreta</button>`:h`<span class="mu">Feedback registado — o motor já aprendeu (${m.n} no total).</span>`}
-  <button class="btn g" onClick=${save} disabled=${!si||res.saved}>${res.saved?'Nota guardada':'Guardar nota no aluno'}</button></div></div>`}</div>`;
+  <button class="btn g" onClick=${save} disabled=${!si||res.saved}>${res.saved?'Nota guardada':'Somar ao teste do aluno'}</button></div></div>`}</div>`}</div>`;
+}
+
+function Tests({tests,setTests,cls,setTid,go}){
+  return h`<div><h2>Testes / Exames</h2><p class="mu">Os testes criados em Correção aparecem aqui, com a turma associada e a média da turma (0–20).</p>
+  ${!tests.length&&h`<div class="note">Ainda não há testes.</div><button class="btn" onClick=${()=>go('corr')}>Criar o primeiro teste</button>`}
+  <div class="grid">${tests.map(t=>{const c=cls.find(k=>k.id===t.classId),gs=Object.entries(t.grades),avg=gs.length?(gs.reduce((a,[,g])=>a+gn(g),0)/gs.length).toFixed(1):'—';
+  return h`<div class="card" key=${t.id}><h3>${t.name}</h3><p class="mu">${c?c.name:'Turma removida'} · ${t.author||'sem autor'} · ${t.date}</p>
+  <div class="score">${avg}</div><span class="mu">média da turma · ${gs.length}/${c?c.students.length:0} corrigidos</span>
+  <table>${gs.map(([sid,g])=>{const s=c&&c.students.find(x=>String(x.id)===sid);return h`<tr key=${sid}><td>${s?s.name:'—'}</td><td>${gn(g).toFixed(1)}</td></tr>`})}</table>
+  <div class="row" style="margin-top:10px"><button class="btn s" onClick=${()=>{setTid(t.id);go('corr')}}>Corrigir</button><button class="btn k s" onClick=${()=>setTests(tests.filter(o=>o.id!==t.id))}>Remover</button></div></div>`})}</div></div>`;
 }
 
 function App(){
-  const[pg,setPg]=useState('inicio');
+  const[pg,setPg]=useState('inicio'),[tid,setTid]=useState(null);
   const[cls,setCls]=usePersist('phalpd_cls',[{id:1,name:'12.º A',students:[]}]);
   const[m,setM]=usePersist('phalpd_model',W0);
-  const[docs,setDocs]=usePersist('phalpd_docs',{crit:[],ctx:[],test:[]});
-  const add=k=>d=>setDocs(o=>({...o,[k]:k==='ctx'?[...o[k],d]:[d]}));const del=k=>i=>setDocs(o=>({...o,[k]:o[k].filter((_,j)=>j!==i)}));
-  const U=(k,t,d,multi)=>h`<${Upload} title=${t} desc=${d} multi=${multi} items=${docs[k]} onAdd=${add(k)} onDel=${del(k)}/>`;
+  const[docs,setDocs]=usePersist('phalpd_docs',{crit:[]});
+  const[tests,setTests]=usePersist('phalpd_tests',[]);
+  const crit=docs.crit||[];
   return h`<${React.Fragment}><header><div class="brand" onClick=${()=>setPg('inicio')}><${Logo}/><span>F<b>ALPD</b></span></div>
   <nav>${PAGES.map(([k,t])=>h`<a key=${k} class=${pg===k?'on':''} onClick=${()=>setPg(k)}>${t}</a>`)}</nav>
   <button class="btn g s" onClick=${()=>{}}>Iniciar sessão / Criar conta</button></header>
-  <main>${pg==='inicio'?h`<${Home} go=${setPg} m=${m}/>`:pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls}/>`:pg==='crit'?U('crit','Critérios de avaliação','Carrega o PDF dos critérios da disciplina do ano corrente.',false):pg==='ctx'?U('ctx','Contexto','Carrega PDFs de obras do autor para analisar estilo, recursos expressivos e mensagens subentendidas.',true):pg==='teste'?U('test','Teste / Exame','Carrega o PDF do teste a corrigir.',false):h`<${Correct} cls=${cls} setCls=${setCls} docs=${docs} m=${m} setM=${setM}/>`}</main>
+  <main>${pg==='inicio'?h`<${Home} go=${setPg} m=${m}/>`:pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls}/>`:pg==='crit'?h`<${Upload} title="Critérios de avaliação" desc="Carrega o PDF dos critérios da disciplina do ano corrente." multi=${false} items=${crit} onAdd=${d=>setDocs(o=>({...o,crit:[d]}))} onDel=${i=>setDocs(o=>({...o,crit:(o.crit||[]).filter((_,j)=>j!==i)}))}/>`:pg==='tests'?h`<${Tests} tests=${tests} setTests=${setTests} cls=${cls} setTid=${setTid} go=${setPg}/>`:h`<${Correct} cls=${cls} setCls=${setCls} crit=${crit.map(d=>d.text).join(' ')} m=${m} setM=${setM} tests=${tests} setTests=${setTests} tid=${tid} setTid=${setTid}/>`}</main>
   <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados.</footer><//>`;
 }
+
 ReactDOM.createRoot(document.getElementById('root')).render(h`<${EB}><${App}/><//>`);
 </script>
 </body>
