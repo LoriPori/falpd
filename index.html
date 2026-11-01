@@ -75,20 +75,33 @@ const tok=s=>(norm(s).match(/[a-z]{3,}/g)||[]).filter(w=>!STOP.has(w)).map(w=>w.
 const tf=a=>{const m={};a.forEach(w=>m[w]=(m[w]||0)+1);return m};
 const cos=(a,b)=>{let d=0,x=0,y=0;for(const k in a){x+=a[k]*a[k];if(b[k])d+=a[k]*b[k]}for(const k in b)y+=b[k]*b[k];return x&&y?d/Math.sqrt(x*y):0};
 const topSet=(t,n)=>{const f=tf(tok(t));return new Set(Object.keys(f).sort((a,b)=>f[b]-f[a]).slice(0,n))};
-const RES=['metafora','ironia','comparacao','personificacao','hiperbole','antitese','enumeracao','anafora','aliteracao','sinestesia','adjetivacao','apostrofe','simbolo','eufemismo','paradoxo','oximoro','gradacao','alegoria','retorica','assindeto','polissindeto','ceticismo','sebastianismo'];
+const RES=['metafora','ironia','satira','caricatura','comparacao','personificacao','hiperbole','antitese','enumeracao','anafora','aliteracao','sinestesia','adjetivacao','apostrofe','simbolo','eufemismo','paradoxo','oximoro','gradacao','alegoria','retorica','assindeto','polissindeto'];
 const INF=['sugere','simboliza','revela','evidencia','transmite','remete','denuncia','implicito','subentend','critica','reflete','representa','demonstra'];
-const FN=['Semelhança com a resposta-modelo','Cobertura dos conceitos-chave','Alinhamento com o contexto da obra','Alinhamento com os critérios','Recursos expressivos identificados','Extensão adequada','Interpretação do subentendido'];
-const W0={w:[2.2,2.4,.8,.5,.7,.8,.6],b:-2.6,n:0},LR=.5;
+const CON=['porque','pois','portanto','logo','assim','contudo','no entanto','alem disso','por isso','deste modo','dado que','uma vez que','em suma','por outro lado'];
+const FN=['Semelhança com a resposta-modelo','Cobertura dos conceitos-chave','Expressões coincidentes (bigramas)','Alinhamento com o contexto da obra','Alinhamento com os critérios do domínio','Recursos expressivos','Extensão adequada','Interpretação do subentendido','Conectores / coesão','Diversidade lexical'];
+const W0={w:[1.6,1.8,1.2,.4,.3,.5,.8,.4,.4,.3],b:-2.6,n:0,h:[]},MD0={EL:W0,ES:W0,GR:W0,LE:W0};
 const sig=z=>1/(1+Math.exp(-z));
 const pred=(m,x)=>sig(m.b+x.reduce((s,v,i)=>s+v*m.w[i],0));
 const hits=(a,l)=>l.filter(w=>a.includes(w)).length;
+const bg=a=>a.slice(1).map((w,i)=>a[i]+'_'+w);
 function feats(ans,ref,ctx,crit){
   const ta=tok(ans),tr=tok(ref);if(!ta.length)return FN.map(()=>0);
-  const sa=new Set(ta),sr=new Set(tr),na=norm(ans);
-  const ov=(S)=>S.size?[...sa].filter(w=>S.has(w)).length/sa.size:0;
-  return[cos(tf(ta),tf(tr)),sr.size?[...sr].filter(w=>sa.has(w)).length/sr.size:0,ov(topSet(ctx,400)),ov(topSet(crit,300)),Math.min(hits(na,RES),3)/3,Math.min(ta.length/Math.max(tr.length,1),1),Math.min(hits(na,INF),3)/3];
+  const sa=new Set(ta),sr=new Set(tr),na=norm(ans),ba=new Set(bg(ta)),br=bg(tr);
+  const ov=S=>S.size?[...sa].filter(w=>S.has(w)).length/sa.size:0;
+  const ws=na.match(/[a-z]+/g)||[],nw=ws.length||1,nr=Math.max((norm(ref).match(/[a-z]+/g)||[]).length,1),r=nw/nr;
+  return[cos(tf(ta),tf(tr)),sr.size?[...sr].filter(w=>sa.has(w)).length/sr.size:0,br.length?br.filter(b=>ba.has(b)).length/br.length:0,ov(topSet(ctx,400)),ov(topSet(crit,250)),Math.min(hits(na,RES),3)/3,Math.min(r,1/r),Math.min(hits(na,INF),3)/3,Math.min(hits(na,CON),4)/4,Math.min(new Set(ws).size/nw*1.2,1)];
 }
-const train=(m,x,y)=>{const e=y-pred(m,x);return{w:m.w.map((w,i)=>w+LR*e*x[i]),b:m.b+LR*e,n:m.n+1}};
+/* alvo contínuo t em [0,1] = nota do professor / cotação; repete sobre o histórico (replay) para aprender com poucos exemplos */
+const train=(m,x,t)=>{const h=[...(m.h||[]),[x,t]].slice(-200);let w=[...m.w],b=m.b;for(let e=0;e<6;e++)for(const[xi,ti]of h){const er=ti-sig(b+xi.reduce((s,v,i)=>s+v*w[i],0));w=w.map((v,i)=>v+.12*(er*xi[i]-.01*v));b+=.12*er}return{w,b,n:m.n+1,h}};
+
+const DOMN={EL:'Educação literária',ES:'Escrita',GR:'Gramática',LE:'Leitura'};
+const detDom=t=>{const n=norm(t);return/\b(escreva|redija|elabore|produza)\b/.test(n)&&/(palavras|texto|apreciacao|opiniao|ensaio|artigo)/.test(n)?'ES':/(oracao|subordinada|coordenada|funcao sintatica|complemento|classe de palavras|valor modal|tempo verbal|pronome|determinante|sujeito|predicativo|deixis)/.test(n)?'GR':'EL'};
+const qdom=q=>q.dom||detDom(q.text);
+/* critérios: só as páginas de Português 12.º (exclui PLNM e outras disciplinas) e só o domínio da questão */
+const critPT=t=>{const p=t.split('\n').filter(g=>/PORTU[GQ]U[EÊ]S\s*[-–]\s*12/i.test(g)&&!/PLNM/i.test(g));return p.length?p.join(' '):t};
+const ptPages=t=>[critPT(t)===t?0:t.split('\n').filter(g=>/PORTU[GQ]U[EÊ]S\s*[-–]\s*12/i.test(g)&&!/PLNM/i.test(g)).length,t.split('\n').filter(Boolean).length];
+const HD=[['LE',/Leitura:\s*20%/i],['EL',/Educa[cç][aã]o\s+liter[aá]ria:\s*20%/i],['ES',/Escrita:\s*20%/i],['GR',/Gram[aá]tica:\s*10%/i]];
+const critDom=(t,d)=>{const s=critPT(t),p=HD.map(([k,r])=>[k,s.search(r)]).filter(x=>x[1]>=0).sort((a,b)=>a[1]-b[1]),i=p.findIndex(x=>x[0]===d);return i<0?s:s.slice(p[i][1],i+1<p.length?p[i+1][1]:s.length)};
 
 async function pdfText(f){const d=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let t='';for(let i=1;i<=d.numPages;i++){const p=await(await d.getPage(i)).getTextContent();t+=p.items.map(x=>x.str).join(' ')+'\n'}return t}
 
@@ -160,54 +173,89 @@ function NewTest({cls,tests,onCreate}){
 
 function parseTest(raw){
   const T=raw.replace(/\s+/g,' ').trim();
-  const heads=T.split(/(?=\bGRUPO\s+[IVX]+\b)/).filter(p=>/^GRUPO\s+[IVX]+/.test(p));
+  const heads=T.split(/(?=\bGRUPO\s+[IVX]+\b)/i).filter(p=>/^GRUPO\s+[IVX]+/i.test(p)&&p.length>60);
   let n=0;
   return(heads.length?heads:[T]).map((p,gi)=>{
-    const hm=p.match(/^GRUPO\s+[IVX]+/),body=hm?p.slice(hm[0].length):p;
-    const re=/(?:^|\s)(\d{1,2}(?:\.\d{1,2})?)\.\s+(?=[A-ZÀ-Ú«“"])/g,mk=[];let r;
+    const hm=p.match(/^GRUPO\s+[IVX]+/i),body=hm?p.slice(hm[0].length):p;
+    const re=/(?:^|\s)(\d{1,2}(?:\.\d{1,2})?)[.)]\s+(?=[A-ZÀ-Ú«“"])/g,mk=[];let r;
     while((r=re.exec(body)))mk.push({i:r.index,l:r[1],e:re.lastIndex});
-    const qs=mk.map((k,i)=>{const tx=body.slice(k.e,i+1<mk.length?mk[i+1].i:body.length).trim(),pm=tx.match(/(\d{1,3})\s*(?:pontos|pts)/i);return{id:'q'+(++n),label:k.l,text:tx,max:pm?+pm[1]:10,model:''}});
-    return{id:'g'+gi,name:hm?hm[0].replace(/\s+/,' '):'Teste',intro:(mk.length?body.slice(0,mk[0].i):body).trim(),qs};
+    const mq=(l,tx)=>{const pm=tx.match(/(\d{1,3})\s*(?:pontos|pts)/i);return{id:'q'+(++n),label:l,text:tx,max:pm?+pm[1]:10,model:'',dom:detDom(tx)}};
+    /* grupo sem questões numeradas (ex.: Grupo III de escrita) = uma única questão com o texto todo */
+    const qs=mk.length?mk.map((k,i)=>mq(k.l,body.slice(k.e,i+1<mk.length?mk[i+1].i:body.length).trim())):[mq('1',body.trim())];
+    return{id:'g'+gi,name:hm?hm[0].replace(/\s+/,' ').toUpperCase():'Teste',intro:mk.length?body.slice(0,mk[0].i).trim():'',qs};
   });
 }
 
-function Correct({cls,setCls,crit,m,setM,tests,setTests,tid,setTid}){
+/* Segunda opinião: o LLM recebe todo o contexto mas só devolve uma sugestão de nota; a decisão é da FALPD e do professor */
+async function opinion(c,{crit,paper,ctx,intro,q,ans}){
+  const prompt=`És um segundo avaliador de Português (12.º ano, Portugal). Dás apenas uma OPINIÃO: a decisão final é de outro sistema e do professor.\n\nCRITÉRIOS (domínio avaliado):\n${crit.slice(0,3500)}\n\nTESTE:\n${paper.slice(0,6000)}\n\nCONTEXTO (obras do autor):\n${ctx.slice(0,6000)}\n\nTEXTO DO GRUPO:\n${intro.slice(0,2500)}\n\nQUESTÃO (${q.max} pontos): ${q.text}\n\nRESPOSTA-MODELO:\n${q.model}\n\nRESPOSTA DO ALUNO:\n${ans}\n\nDevolve APENAS JSON: {"nota": número entre 0 e ${q.max} em passos de 0.5, "justificacao": "2 a 3 frases"}`;
+  let txt;
+  if(c.prov==='claude'){
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':c.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:c.model||'claude-sonnet-5-5',max_tokens:500,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();if(!r.ok)throw new Error((d.error&&d.error.message)||r.status);txt=d.content[0].text;
+  }else{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+(c.model||'gemini-flash-latest')+':generateContent?key='+encodeURIComponent(c.key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.2,responseMimeType:'application/json'}})});
+    const d=await r.json();if(!r.ok)throw new Error((d.error&&d.error.message)||r.status);txt=d.candidates[0].content.parts[0].text;
+  }
+  const j=JSON.parse(txt.match(/\{[\s\S]*\}/)[0]);
+  return{nota:Math.max(0,Math.min(q.max,Math.round(+j.nota*2)/2)),just:String(j.justificacao||'')};
+}
+
+function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,setTid}){
   const t=tests.find(x=>x.id===tid);
-  const[si,setSi]=useState(''),[ed,setEd]=useState(false),[rs,setRs]=useState({}),[saved,setSaved]=useState(false);
-  const c=t&&cls.find(k=>k.id===t.classId),ctx=t?ctxOf(t,tests):'',G=(t&&t.groups)||[];
+  const[si,setSi]=useState(''),[ed,setEd]=useState(false),[rs,setRs]=useState({}),[saved,setSaved]=useState(false),[busy,setBusy]=useState(false),[err,setErr]=useState('');
+  const c=t&&cls.find(k=>k.id===t.classId),ctx=t?ctxOf(t,tests):'',G=(t&&t.groups)||[],AQ=G.flatMap(g=>g.qs.map(q=>({g,q})));
   const extra=t&&t.reuse?tests.filter(o=>o.id!==t.id&&norm(o.author)===norm(t.author)).reduce((a,o)=>a+o.ctx.length,0):0;
   const upT=f=>setTests(tests.map(o=>o.id===t.id?f(o):o));
   const upG=(gid,p)=>upT(o=>({...o,groups:o.groups.map(g=>g.id===gid?{...g,...p}:g)}));
   const upQ=(gid,qid,p)=>upT(o=>({...o,groups:o.groups.map(g=>g.id===gid?{...g,qs:g.qs.map(q=>q.id===qid?{...q,...p}:q)}:g)}));
   const ans=qid=>((t.answers||{})[si]||{})[qid]||'';
   const setAns=(qid,v)=>upT(o=>({...o,answers:{...(o.answers||{}),[si]:{...((o.answers||{})[si]||{}),[qid]:v}}}));
-  const pick=v=>{setSi(v);setRs({});setSaved(false)};
-  const run=()=>{const r={};G.forEach(g=>g.qs.forEach(q=>{const a=ans(q.id);if(q.model&&q.model.trim()&&a.trim()){const x=feats(a,q.model,ctx+' '+g.intro,crit),p=pred(m,x);r[q.id]={x,p,score:Math.round(p*q.max*2)/2,fb:null}}}));setRs(r);setSaved(false)};
-  const fb=(qid,y)=>{setM(train(m,rs[qid].x,y));setRs({...rs,[qid]:{...rs[qid],fb:y}})};
-  const ev=G.flatMap(g=>g.qs).filter(q=>rs[q.id]),P=ev.reduce((a,q)=>a+rs[q.id].score,0),M=ev.reduce((a,q)=>a+q.max,0);
+  const pick=v=>{setSi(v);setRs({});setSaved(false);setErr('')};
+  const lam=st.nl<3?.3:Math.min(.6,Math.max(.1,st.eE/(st.eE+st.eL+1e-6)));
+  const mix=(a,b)=>Math.round(((1-lam)*a+lam*b)*2)/2;
+  const fin=e=>e.tg!=null?e.tg:e.prop;
+  const run=()=>{const r={};AQ.forEach(({g,q})=>{const a=ans(q.id);if(q.model&&q.model.trim()&&a.trim()){const d=qdom(q),x=feats(a,q.model,ctx+' '+g.intro,critDom(crit,d)),e=Math.round(pred(m[d],x)*q.max*2)/2;r[q.id]={x,d,eng:e,llm:null,tg:null,prop:e,tin:''}}});setRs(r);setSaved(false);setErr(Object.keys(r).length?'':'Preenche a resposta-modelo e a resposta do aluno em pelo menos uma questão.')};
+  const ask=async()=>{if(!llm.key){setErr('Define a chave da API em "Segunda opinião (LLM)".');return}setBusy(true);setErr('');const r={...rs};
+    for(const{g,q}of AQ){const e=rs[q.id];if(!e)continue;try{const o=await opinion(llm,{crit:critDom(crit,e.d),paper:t.paper?t.paper.text:'',ctx,intro:g.intro,q,ans:ans(q.id)});r[q.id]={...e,llm:o,prop:mix(e.eng,o.nota)};setRs({...r})}catch(x){setErr('Erro da API: '+x.message);break}}
+    setBusy(false)};
+  const reg=(qid)=>{const e=rs[qid],q=AQ.find(a=>a.q.id===qid).q,v=e.tin!==''?+e.tin:e.prop;if(isNaN(v))return;const g=Math.max(0,Math.min(q.max,v));
+    setM({...m,[e.d]:train(m[e.d],e.x,g/q.max)});
+    setSt({n:st.n+1,eE:(st.eE*st.n+Math.abs(e.eng-g)/q.max)/(st.n+1),nl:st.nl+(e.llm?1:0),eL:e.llm?(st.eL*st.nl+Math.abs(e.llm.nota-g)/q.max)/(st.nl+1):st.eL});
+    setRs({...rs,[qid]:{...e,tg:g}})};
+  const ev=AQ.filter(({q})=>rs[q.id]),P=ev.reduce((a,{q})=>a+fin(rs[q.id]),0),M=ev.reduce((a,{q})=>a+q.max,0),pend=ev.some(({q})=>rs[q.id].tg==null);
   const save=()=>{const nt=(P/M*20).toFixed(1);setCls(cls.map(k=>k.id===t.classId?{...k,students:k.students.map(s=>String(s.id)===si?{...s,nota:nt}:s)}:k));upT(o=>({...o,grades:{...o.grades,[si]:{p:P,m:M}}}));setSaved(true)};
-  const newQ=g=>upG(g.id,{qs:[...g.qs,{id:'q'+Date.now(),label:String(g.qs.length+1),text:'',max:10,model:''}]});
+  const rp=()=>upT(o=>{const old=o.groups||[];return{...o,groups:parseTest(o.paper.text).map(g=>({...g,qs:g.qs.map(q=>{const og=old.find(x=>x.name===g.name),oq=og&&og.qs.find(x=>x.label===q.label);return oq?{...q,model:oq.model,max:oq.max}:q})}))}});
   return h`<div><h2>Correção</h2><p class="mu">Cria um teste a partir do PDF: a FALPD separa os grupos e as questões. Escreve uma vez a resposta-modelo de cada questão e, aluno a aluno, cola ou escreve as respostas.</p>
   <div class="tabs">${tests.map(x=>h`<span key=${x.id} class=${'pill'+(x.id===tid?' on':'')} onClick=${()=>{setTid(x.id);pick('')}}>${x.name}</span>`)}<span class=${'pill'+(!t?' on':'')} onClick=${()=>setTid(null)}>+ Novo teste</span></div>
   ${!t?h`<${NewTest} cls=${cls} tests=${tests} onCreate=${x=>{setTests([...tests,x]);setTid(x.id)}}/>`:h`<div>
-  <div class="note"><b>${t.name}</b> · ${c?c.name:'turma removida'} · ${t.author||'sem autor'} · contexto: ${t.ctx.length} PDF(s)${extra>0?' + '+extra+' reutilizado(s)':''}</div>
+  <div class="note"><b>${t.name}</b> · ${c?c.name:'turma removida'} · ${t.author||'sem autor'} · contexto: ${t.ctx.length} PDF(s)${extra>0?' + '+extra+' reutilizado(s)':''}<br/>Erro médio do motor face à tua nota: <b>${st.n?(st.eE*100).toFixed(0)+'%':'—'}</b> da cotação (${st.n} nota(s) registada(s))${st.nl?' · LLM: '+(st.eL*100).toFixed(0)+'%':''}</div>
   ${!crit&&h`<div class="note">Sem critérios carregados (menu Critérios) a precisão desce.</div>`}
   <div class="card"><div class="row"><div><label>Aluno</label><select value=${si} onChange=${e=>pick(e.target.value)}><option value="">— escolhe —</option>${(c?c.students:[]).map(s=>h`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select></div>
   <button class="btn" disabled=${!si||!G.length} onClick=${run}>Avaliar teste</button>
+  <button class="btn k" disabled=${!Object.keys(rs).length||busy} onClick=${ask}>${busy?'A pedir…':'2.ª opinião (LLM)'}</button>
   <button class="btn g" onClick=${()=>setEd(!ed)}>${ed?'Concluir edição':'Editar estrutura'}</button>
-  ${t.paper&&!G.length&&h`<button class="btn k" onClick=${()=>upT(o=>({...o,groups:parseTest(o.paper.text)}))}>Separar questões do PDF</button>`}</div>
-  ${ev.length>0&&h`<div class="row" style="margin-top:12px"><div><span class="score">${(P/M*20).toFixed(1)}</span><span class="mu"> / 20 · ${P}/${M} pts</span></div><button class="btn" disabled=${saved} onClick=${save}>${saved?'Nota guardada':'Guardar nota do aluno'}</button></div>`}</div>
-  ${!G.length&&h`<div class="note">Sem questões. ${t.paper?'Carrega em "Separar questões do PDF" (só funciona com PDFs com texto, não digitalizações).':'Este teste não tem PDF: usa "Editar estrutura" para criar grupos e questões.'}</div>`}
+  ${t.paper&&h`<button class="btn g" onClick=${rp}>Reler estrutura do PDF</button>`}</div>
+  ${err&&h`<div class="note">${err}</div>`}
+  <details style="margin-top:10px"><summary class="mu">Segunda opinião (LLM) — opcional</summary><div class="row"><div><label>Fornecedor</label><select value=${llm.prov} onChange=${e=>setLlm({...llm,prov:e.target.value})}><option value="gemini">Gemini (chave gratuita do AI Studio)</option><option value="claude">Claude (Anthropic)</option></select></div>
+  <div><label>Chave da API</label><input type="password" value=${llm.key} onInput=${e=>setLlm({...llm,key:e.target.value})}/></div><div><label>Modelo (opcional)</label><input value=${llm.model} onInput=${e=>setLlm({...llm,model:e.target.value})} placeholder=${llm.prov==='claude'?'claude-sonnet-5-5':'gemini-flash-latest'}/></div></div>
+  <p class="mu">O LLM só sugere uma nota. A proposta é da FALPD (mistura do motor com a opinião, com peso aprendido), e a nota final é sempre a tua. São enviados ao fornecedor critérios de Português, teste, contexto, resposta-modelo e resposta do aluno (sem nomes). A chave fica só neste navegador.</p></details>
+  ${ev.length>0&&h`<div class="row" style="margin-top:12px"><div><span class="score">${(P/M*20).toFixed(1)}</span><span class="mu"> / 20 · ${P}/${M} pts${pend?' · provisória (faltam notas do professor)':''}</span></div><button class="btn" disabled=${saved} onClick=${save}>${saved?'Nota guardada':'Guardar nota do aluno'}</button></div>`}</div>
+  ${!G.length&&h`<div class="note">Sem questões. ${t.paper?'Carrega em "Reler estrutura do PDF" (só funciona com PDFs com texto).':'Este teste não tem PDF: usa "Editar estrutura" para criar grupos e questões.'}</div>`}
   ${G.map(g=>h`<div key=${g.id} style="margin-top:22px">${ed?h`<div class="row"><input value=${g.name} onInput=${e=>upG(g.id,{name:e.target.value})}/><button class="btn k s" onClick=${()=>upT(o=>({...o,groups:o.groups.filter(x=>x.id!==g.id)}))}>Remover grupo</button></div>`:h`<h3 style="color:var(--or)">${g.name}</h3>`}
   ${(g.intro||ed)&&h`<details><summary class="mu">Texto / enunciado do grupo</summary>${ed?h`<textarea value=${g.intro} onInput=${e=>upG(g.id,{intro:e.target.value})}></textarea>`:h`<div class="mu" style="white-space:pre-wrap">${g.intro}</div>`}</details>`}
   ${g.qs.map(q=>{const r=rs[q.id];return h`<div class="card" key=${q.id} style="margin-top:12px"><div class="row">${ed?h`<input value=${q.label} onInput=${e=>upQ(g.id,q.id,{label:e.target.value})} style="max-width:80px"/>`:h`<b style="flex:0 0 auto">Questão ${q.label}</b>`}
   <div style="max-width:120px"><input type="number" min="1" title="Cotação" value=${q.max} onInput=${e=>upQ(g.id,q.id,{max:+e.target.value||1})}/></div><span class="mu" style="flex:0 0 auto">pontos</span>
+  <div style="max-width:200px"><select title="Domínio dos critérios" value=${qdom(q)} onChange=${e=>upQ(g.id,q.id,{dom:e.target.value})}>${Object.entries(DOMN).map(([k,v])=>h`<option key=${k} value=${k}>${v}</option>`)}</select></div>
   ${ed&&h`<button class="btn k s" onClick=${()=>upG(g.id,{qs:g.qs.filter(x=>x.id!==q.id)})}>Remover</button>`}</div>
   ${ed?h`<textarea value=${q.text} onInput=${e=>upQ(g.id,q.id,{text:e.target.value})}></textarea>`:h`<div style="white-space:pre-wrap;margin:8px 0">${q.text}</div>`}
   <div class="two"><div><label>Resposta-modelo (igual para todos os alunos)</label><textarea value=${q.model} onInput=${e=>upQ(g.id,q.id,{model:e.target.value})}></textarea></div>
   <div><label>Resposta do aluno</label>${si?h`<textarea value=${ans(q.id)} onInput=${e=>setAns(q.id,e.target.value)}></textarea>`:h`<div class="note">Escolhe um aluno.</div>`}</div></div>
-  ${r&&h`<div class="row" style="margin-top:10px"><span class="score" style="font-size:28px">${r.score}/${q.max}</span><span class="mu">confiança ${(r.p*100).toFixed(0)}%</span>${r.fb==null?h`<button class="btn s" onClick=${()=>fb(q.id,1)}>✔ Correta</button><button class="btn k s" onClick=${()=>fb(q.id,0)}>✘ Incorreta</button>`:h`<span class="mu">Feedback registado (${m.n} no total)</span>`}</div>`}</div>`})}
-  ${ed&&h`<div style="margin-top:10px"><button class="btn g s" onClick=${()=>newQ(g)}>+ Questão</button></div>`}</div>`)}
+  ${r&&h`<div style="margin-top:10px"><div class="row"><span class="score" style="font-size:28px">${fin(r)}/${q.max}</span><span class="mu">Motor: ${r.eng}${r.llm?' · LLM: '+r.llm.nota+' · proposta: '+r.prop:''}</span>${r.llm&&Math.abs(r.eng-r.llm.nota)/q.max>.25&&h`<span class="pill on">divergência — rever</span>`}</div>
+  ${r.llm&&h`<p class="mu">LLM: ${r.llm.just}</p>`}
+  <div class="row"><input type="number" step="0.5" min="0" max=${q.max} placeholder=${'Nota do professor (proposta '+r.prop+')'} value=${r.tin} onInput=${e=>setRs({...rs,[q.id]:{...r,tin:e.target.value}})}/><button class="btn s" onClick=${()=>reg(q.id)}>${r.tg!=null?'Registada ✔ (volta a registar para corrigir)':'Registar nota do professor'}</button></div>
+  <details><summary class="mu">Parâmetros do motor</summary>${FN.map((f,i)=>h`<div key=${f} style="margin:5px 0"><span class="mu">${f} · peso ${m[r.d].w[i].toFixed(2)}</span><div class="bar"><i style=${{width:Math.round(r.x[i]*100)+'%'}}></i></div></div>`)}</details></div>`}</div>`})}
+  ${ed&&h`<div style="margin-top:10px"><button class="btn g s" onClick=${()=>upG(g.id,{qs:[...g.qs,{id:'q'+Date.now(),label:String(g.qs.length+1),text:'',max:10,model:'',dom:'EL'}]})}>+ Questão</button></div>`}</div>`)}
   ${ed&&h`<div style="margin-top:16px"><button class="btn g" onClick=${()=>upT(o=>({...o,groups:[...(o.groups||[]),{id:'g'+Date.now(),name:'Grupo',intro:'',qs:[]}]}))}>+ Grupo</button></div>`}</div>`}</div>`;
 }
 
@@ -224,17 +272,19 @@ function Tests({tests,setTests,cls,setTid,go}){
 function App(){
   const[pg,setPg]=useState('inicio'),[tid,setTid]=useState(null);
   const[cls,setCls]=usePersist('phalpd_cls',[{id:1,name:'12.º A',students:[]}]);
-  const[m,setM]=usePersist('phalpd_model',W0);
+  const[m,setM]=usePersist('phalpd_model2',MD0);
+  const[st,setSt]=usePersist('phalpd_stats',{n:0,eE:0,nl:0,eL:0});
+  const[llm,setLlm]=usePersist('phalpd_llm',{prov:'gemini',key:'',model:''});
   const[docs,setDocs]=usePersist('phalpd_docs',{crit:[]});
   const[tests,setTests]=usePersist('phalpd_tests',[]);
-  const crit=docs.crit||[];
+  const crit=docs.crit||[],ctext=crit.map(d=>d.text).join('\n'),pp=ptPages(ctext);
+  const nfb=Object.values(m).reduce((a,x)=>a+x.n,0);
   return h`<${React.Fragment}><header><div class="brand" onClick=${()=>setPg('inicio')}><${Logo}/><span>F<b>ALPD</b></span></div>
   <nav>${PAGES.map(([k,t])=>h`<a key=${k} class=${pg===k?'on':''} onClick=${()=>setPg(k)}>${t}</a>`)}</nav>
   <button class="btn g s" onClick=${()=>{}}>Iniciar sessão / Criar conta</button></header>
-  <main>${pg==='inicio'?h`<${Home} go=${setPg} m=${m}/>`:pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls}/>`:pg==='crit'?h`<${Upload} title="Critérios de avaliação" desc="Carrega o PDF dos critérios da disciplina do ano corrente." multi=${false} items=${crit} onAdd=${d=>setDocs(o=>({...o,crit:[d]}))} onDel=${i=>setDocs(o=>({...o,crit:(o.crit||[]).filter((_,j)=>j!==i)}))}/>`:pg==='tests'?h`<${Tests} tests=${tests} setTests=${setTests} cls=${cls} setTid=${setTid} go=${setPg}/>`:h`<${Correct} cls=${cls} setCls=${setCls} crit=${crit.map(d=>d.text).join(' ')} m=${m} setM=${setM} tests=${tests} setTests=${setTests} tid=${tid} setTid=${setTid}/>`}</main>
+  <main>${pg==='inicio'?h`<${Home} go=${setPg} m=${{n:nfb}}/>`:pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls}/>`:pg==='crit'?h`<div><${Upload} title="Critérios de avaliação" desc="Carrega o PDF dos critérios do ano corrente. Pode conter todas as disciplinas: a FALPD usa apenas as páginas de Português 12.º e, em cada questão, só o domínio respetivo (Leitura, Educação literária, Escrita ou Gramática)." multi=${false} items=${crit} onAdd=${d=>setDocs(o=>({...o,crit:[d]}))} onDel=${i=>setDocs(o=>({...o,crit:(o.crit||[]).filter((_,j)=>j!==i)}))}/>${crit.length>0&&h`<div class="note">${pp[0]?'Páginas de Português 12.º reconhecidas: '+pp[0]+' de '+pp[1]+'. As restantes disciplinas são ignoradas.':'Não encontrei páginas de Português 12.º neste PDF — vai ser usado o documento inteiro.'}</div>`}</div>`:pg==='tests'?h`<${Tests} tests=${tests} setTests=${setTests} cls=${cls} setTid=${setTid} go=${setPg}/>`:h`<${Correct} cls=${cls} setCls=${setCls} crit=${ctext} m=${m} setM=${setM} st=${st} setSt=${setSt} llm=${llm} setLlm=${setLlm} tests=${tests} setTests=${setTests} tid=${tid} setTid=${setTid}/>`}</main>
   <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados.</footer><//>`;
 }
-
 ReactDOM.createRoot(document.getElementById('root')).render(h`<${EB}><${App}/><//>`);
 </script>
 </body>
