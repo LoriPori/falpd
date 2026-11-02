@@ -78,8 +78,8 @@ const topSet=(t,n)=>{const f=tf(tok(t));return new Set(Object.keys(f).sort((a,b)
 const RES=['metafora','ironia','satira','caricatura','comparacao','personificacao','hiperbole','antitese','enumeracao','anafora','aliteracao','sinestesia','adjetivacao','apostrofe','simbolo','eufemismo','paradoxo','oximoro','gradacao','alegoria','retorica','assindeto','polissindeto'];
 const INF=['sugere','simboliza','revela','evidencia','transmite','remete','denuncia','implicito','subentend','critica','reflete','representa','demonstra'];
 const CON=['porque','pois','portanto','logo','assim','contudo','no entanto','alem disso','por isso','deste modo','dado que','uma vez que','em suma','por outro lado'];
-const FN=['Semelhança com a resposta-modelo','Cobertura dos conceitos-chave','Expressões coincidentes (bigramas)','Alinhamento com o contexto da obra','Alinhamento com os critérios do domínio','Recursos expressivos','Extensão adequada','Interpretação do subentendido','Conectores / coesão','Diversidade lexical','Elementos essenciais presentes','Figura de estilo trocada','Semântica: o aluno diz o que o modelo diz','Semântica: o que o aluno diz está no modelo'];
-const W0={w:[1.6,1.8,1.2,.4,.3,.5,.8,.4,.4,.3,1.6,-.4,1.4,.6],b:-3.4,n:0,h:[]},MD0={EL:W0,ES:W0,GR:W0,LE:W0};
+const FN=['Semelhança com a resposta-modelo','Cobertura dos conceitos-chave','Expressões coincidentes (bigramas)','Alinhamento com o contexto da obra','Alinhamento com os critérios do domínio','Recursos expressivos','Extensão adequada','Interpretação do subentendido','Conectores / coesão','Diversidade lexical','Elementos essenciais presentes','Figura de estilo trocada','Semântica: o aluno diz o que o modelo diz','Semântica: o que o aluno diz está no modelo','Ortografia (dicionário)','Pontuação'];
+const W0={w:[1.6,1.8,1.2,.4,.3,.5,.8,.4,.4,.3,1.6,-.4,1.4,.6,.5,.5],b:-4.3,n:0,h:[]},WE={w:[.8,1,.5,.4,.3,.5,1.2,.4,.8,.8,1.6,-.4,.8,.4,1.2,1],b:-4.4,n:0,h:[]},MD0={EL:W0,ES:WE,GR:W0,LE:W0};
 const FIGN={metafor:'metáfora',comparac:'comparação',personific:'personificação',hiperbol:'hipérbole',ironi:'ironia',antites:'antítese',enumerac:'enumeração',gradac:'gradação',sinestes:'sinestesia',adjetivac:'adjetivação',aliterac:'aliteração',anafor:'anáfora',apostrof:'apóstrofe',eufemism:'eufemismo',paradox:'paradoxo',oximor:'oxímoro',alegori:'alegoria',satir:'sátira',caricatur:'caricatura',retoric:'pergunta retórica',assindet:'assíndeto',polissindet:'polissíndeto'};
 const FIG=Object.keys(FIGN),figs=t=>{const n=norm(t);return FIG.filter(f=>n.includes(f))};
 /* elementos essenciais: definidos pelo professor (um por linha; sinónimos com |; peso com ::) ou, por defeito, as figuras de estilo nomeadas na resposta-modelo */
@@ -88,14 +88,14 @@ const sig=z=>1/(1+Math.exp(-z));
 const pred=(m,x)=>sig(m.b+x.reduce((s,v,i)=>s+v*m.w[i],0));
 const hits=(a,l)=>l.filter(w=>a.includes(w)).length;
 const bg=a=>a.slice(1).map((w,i)=>a[i]+'_'+w);
-function feats(ans,ref,ctx,crit,ess,sem){
+function feats(ans,ref,ctx,crit,ess,sem,lg,rng){
   const ta=tok(ans),tr=tok(ref);if(!ta.length)return FN.map(()=>0);
   const sa=new Set(ta),sr=new Set(tr),na=norm(ans),ba=new Set(bg(ta)),br=bg(tr);
   const ov=S=>S.size?[...sa].filter(w=>S.has(w)).length/sa.size:0;
   const ws=na.match(/[a-z]+/g)||[],nw=ws.length||1,nr=Math.max((norm(ref).match(/[a-z]+/g)||[]).length,1),r=nw/nr;
   let c=0,sw=0;(ess||[]).forEach(it=>{sw+=it.w;if(it.alts.some(z=>na.includes(z))||(sem&&sem.hit[it.lab]))c+=it.w});
   const mf=figs(ref),sf=figs(ans),wrong=mf.length&&sf.length&&!sf.some(f=>mf.includes(f))?1:0;
-  const L=[cos(tf(ta),tf(tr)),sr.size?[...sr].filter(w=>sa.has(w)).length/sr.size:0,br.length?br.filter(b=>ba.has(b)).length/br.length:0,ov(topSet(ctx,400)),ov(topSet(crit,250)),Math.min(hits(na,RES),3)/3,Math.min(r,1/r),Math.min(hits(na,INF),3)/3,Math.min(hits(na,CON),4)/4,Math.min(new Set(ws).size/nw*1.2,1),sw?(c/sw-.5)*2:0,wrong];L.push(sem?sem.cov:L[0],sem?sem.prec:L[1]);return L;
+  const L=[cos(tf(ta),tf(tr)),sr.size?[...sr].filter(w=>sa.has(w)).length/sr.size:0,br.length?br.filter(b=>ba.has(b)).length/br.length:0,ov(topSet(ctx,400)),ov(topSet(crit,250)),Math.min(hits(na,RES),3)/3,(rng?(nw<rng[0]?nw/rng[0]:nw>rng[1]?rng[1]/nw:1):Math.min(r,1/r)),Math.min(hits(na,INF),3)/3,Math.min(hits(na,CON),4)/4,Math.min(new Set(ws).size/nw*1.2,1),sw?(c/sw-.5)*2:0,wrong];L.push(sem?sem.cov:L[0],sem?sem.prec:L[1],lg&&lg.sp!=null?lg.sp:.75,lg?lg.pu:.75);return L;
 }
 /* alvo contínuo t em [0,1] = nota do professor / cotação; repete sobre o histórico (replay) para aprender com poucos exemplos */
 const train=(m,x,t)=>{const h=[...(m.h||[]),[x,t]].slice(-200);let w=[...m.w],b=m.b;for(let e=0;e<6;e++)for(const[xi,ti]of h){const er=ti-sig(b+xi.reduce((s,v,i)=>s+v*w[i],0));w=w.map((v,i)=>v+.12*(er*xi[i]-.01*v));b+=.12*er}return{w,b,n:m.n+1,h}};
@@ -125,6 +125,53 @@ async function semOf(ans,ref,ess){
   if(its.length){const Lb=await embed(its.map(i=>i.lab));its.forEach((it,k)=>{hit[it.lab]=Math.max(...ea.map(a=>dot(a,Lb[k])))>=.5})}
   return{cov,prec,hit};
 }
+/* ===== Dicionário (ortografia) e regras de pontuação ===== */
+const DICT={sp:null};
+async function loadDict(cb){
+  if(DICT.sp)return;
+  if(typeof Typo==='undefined'){cb&&cb('A carregar o verificador…');await new Promise((ok,ko)=>{const e=document.createElement('script');e.src='https://cdn.jsdelivr.net/npm/typo-js@1.4.0/typo.js';e.onload=ok;e.onerror=()=>ko(new Error('não foi possível carregar o typo.js'));document.head.appendChild(e)})}
+  cb&&cb('A descarregar o dicionário de português (cerca de 1,5 MB)…');
+  const[aff,dic]=await Promise.all(['aff','dic'].map(x=>fetch('https://cdn.jsdelivr.net/npm/dictionary-pt-pt@2.0.0/index.'+x).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()})));
+  cb&&cb('A preparar o dicionário…');await new Promise(r=>setTimeout(r,30));
+  DICT.sp=new Typo('pt_PT',aff,dic,{platform:'any'});
+}
+const WRE=/\p{L}+(?:-\p{L}+)*/gu;
+function spell(text,known){
+  if(!DICT.sp)return null;
+  const T=text.replace(/\s+/g,' '),out=[];let m;WRE.lastIndex=0;
+  while((m=WRE.exec(T))){const w=m[0];if(w.length<3||w===w.toUpperCase())continue;
+    const prev=T.slice(0,m.index).trimEnd(),start=!prev||/[.!?:]["»”)]*$/.test(prev);
+    if(/^\p{Lu}/u.test(w)&&!start)continue;
+    if(known&&known.has(norm(w)))continue;
+    const ok=w.toLowerCase().split('-').every(p=>p.length<3||DICT.sp.check(p)||DICT.sp.check(p[0].toUpperCase()+p.slice(1)));
+    if(!ok)out.push({msg:'ortografia: «'+w+'»',ctx:'…'+T.slice(Math.max(0,m.index-15),m.index+w.length+15)+'…'});
+  }
+  return out;
+}
+const VB='é|são|foi|era|eram|tem|têm|há|critica|ridiculariza|mostra|revela|representa|simboliza|evidencia|retrata|sugere|demonstra|expressa|transmite|denuncia|ilustra|reflete|reflecte|caracteriza|refere|apresenta|utiliza|usa|permite|contribui|afirma|diz|considera|indica|parece|acredita|pensa|conclui|defende|salienta|sublinha|destaca';
+const CN='Contudo|Todavia|Porém|Portanto|Assim sendo|Em suma|Por isso|No entanto|Além disso|Por outro lado|Em primeiro lugar|Em segundo lugar|Em conclusão|Deste modo|Ou seja|Por fim|Em síntese|Com efeito|Por conseguinte';
+function pontos(t){
+  const T=t.replace(/\s+/g,' ').trim(),out=[];if(!T)return out;let m;
+  const add=(i,len,msg,soft)=>out.push({msg,soft:!!soft,ctx:'…'+T.slice(Math.max(0,i-18),i+len+18)+'…'});
+  const R=(re,fn)=>{re.lastIndex=0;while((m=re.exec(T)))fn(m)};
+  R(/(?<![\p{L}-])(de|da|do|das|dos|em|no|na|nos|nas|com|por|para|pelo|pela|ao|aos)\s*,\s*(?=\p{L})/giu,m=>add(m.index,m[0].length,'vírgula depois de «'+m[1]+'» (separa a palavra do que ela introduz)'));
+  R(new RegExp('(?<![\\p{L}-])('+VB+')\\s*,\\s+(?=(?:a|o|as|os|um|uma|uns|umas|de|do|da|dos|das|em|no|na|com|por|para|que|se)(?![\\p{L}]))','giu'),m=>{const rest=T.slice(m.index+m[0].length),seg=rest.split(/[.!?;:]/)[0],first=seg.split(' ').slice(0,7).join(' ');if(/^que(?![\p{L}])/iu.test(rest)||!first.includes(','))add(m.index,m[0].length,'vírgula a separar o verbo «'+m[1]+'» do seu complemento')});
+  R(/([\p{L}\d])\s+(mas|porém|contudo|todavia)(?![\p{L}])(?!\s+também)/giu,m=>add(m.index,m[0].length,'falta vírgula antes de «'+m[2]+'»'));
+  R(new RegExp('(?:^|[.!?]\\s+)('+CN+')\\s+(?=\\p{L})','giu'),m=>add(m.index,m[0].length,'falta vírgula depois de «'+m[1]+'»',true));
+  R(/(\p{L}),\s+e\s+(?=\p{L})/giu,m=>add(m.index,m[0].length,'vírgula antes de «e» (em regra não se usa; só com sujeitos diferentes ou ênfase)',true));
+  R(/\s[,.;:!?]/g,m=>add(m.index,2,'espaço antes de sinal de pontuação'));
+  R(/[,;:]\p{L}/gu,m=>add(m.index,2,'falta espaço depois do sinal de pontuação'));
+  R(/\p{Ll}{2}[.!?]\p{Lu}\p{Ll}/gu,m=>add(m.index,m[0].length,'falta espaço depois do ponto'));
+  R(/,,|;;|\?\?|!!|(?<!\.)\.\.(?!\.)/g,m=>add(m.index,2,'pontuação repetida'));
+  R(/(\p{L}+)[.!?]\s+(\p{Ll})/gu,m=>{if(m[1].length>3)add(m.index,m[0].length,'frase começa com minúscula')});
+  if(!/[.!?…»”")]$/.test(T))out.push({msg:'o texto não termina com pontuação final',soft:true,ctx:'…'+T.slice(-30)});
+  return out;
+}
+function lingua(a,known){
+  const nw=Math.max((a.match(/\p{L}+/gu)||[]).length,1),ps=pontos(a),es=spell(a,known),w=ps.reduce((s,e)=>s+(e.soft?.5:1),0)/nw*100;
+  return{ps,es:es||[],sp:es?1-Math.min(es.length/nw*100/6,1):null,pu:1-Math.min(w/6,1),nw};
+}
+const rangeOf=t=>{const n=norm(t),m=n.match(/(\d{2,4})\s*(?:a|e|-|–)\s*(\d{2,4})\s*palavras/);if(m)return[+m[1],+m[2]];const k=n.match(/(?:minimo de|pelo menos|no minimo)\s*(\d{2,4})\s*palavras/);return k?[+k[1],Math.round(+k[1]*1.6)]:null};
 async function pdfText(f){const d=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let t='';for(let i=1;i<=d.numPages;i++){const c=await(await d.getPage(i)).getTextContent();let s='',ex=null,y=0;for(const it of c.items){const x=it.transform[4],yy=it.transform[5];if(s&&ex!==null&&Math.abs(yy-y)<3&&x-ex<1.5)s+=it.str;else s+=(s?' ':'')+it.str;ex=x+(it.width||0);y=yy}t+=s+'\f'}return t}
 
 /* ===== UI ===== */
@@ -139,7 +186,7 @@ const PAGES=[['inicio','Início'],['dash','Dashboard'],['crit','Critérios'],['t
 
 function Upload({title,desc,items,multi,onAdd,onDel}){
   const[busy,setBusy]=useState(false),[err,setErr]=useState('');const r=useRef();
-  const go=async e=>{setBusy(true);setErr('');try{for(const f of e.target.files){onAdd({name:f.name,text:(await pdfText(f)).slice(0,300000)})}}catch(x){setErr('Não foi possível ler o PDF (pode ser uma digitalização sem texto).')}setBusy(false);e.target.value=''};
+  const go=async e=>{setBusy(true);setErr('');try{for(const f of e.target.files){onAdd({name:f.name,text:(await pdfText(f)).slice(0,300000)})}}catch(x){setErr('Não foi possível ler o PDF: '+(x&&x.message?x.message:x)+' (pode ser uma digitalização sem texto).')}setBusy(false);e.target.value=''};
   return h`<div><h2>${title}</h2><p class="mu">${desc}</p>
   <div class="drop" onClick=${()=>r.current.click()}><div class="ic">📄</div><b>${busy?'A ler PDF…':'Clica para carregar PDF'+(multi?'s':'')}</b><input ref=${r} type="file" accept="application/pdf" multiple=${multi} hidden onChange=${go}/></div>
   ${err&&h`<div class="note">${err}</div>`}
@@ -172,7 +219,7 @@ const gn=g=>g.m?g.p/g.m*20:0;
 
 function FilePick({label,multi,items,onAdd,onDel}){
   const[busy,setBusy]=useState(false),[err,setErr]=useState('');
-  const go=async e=>{setBusy(true);setErr('');try{for(const f of e.target.files)onAdd({name:f.name,text:(await pdfText(f)).slice(0,150000)})}catch(x){setErr('Não foi possível ler o PDF.')}setBusy(false);e.target.value=''};
+  const go=async e=>{setBusy(true);setErr('');try{for(const f of e.target.files)onAdd({name:f.name,text:(await pdfText(f)).slice(0,150000)})}catch(x){setErr('Não foi possível ler o PDF: '+(x&&x.message?x.message:x))}setBusy(false);e.target.value=''};
   return h`<div><label>${label}</label><input type="file" accept="application/pdf" multiple=${multi} onChange=${go}/>${busy&&h`<span class="mu">A ler PDF…</span>`}${err&&h`<span class="mu">${err}</span>`}
   <div class="thumbs">${items.map((d,i)=>h`<span class="pill" key=${i} title="Remover" onClick=${()=>onDel(i)}>${d.name} ✕</span>`)}</div></div>`;
 }
@@ -228,6 +275,9 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
   const[si,setSi]=useState(''),[ed,setEd]=useState(false),[rs,setRs]=useState({}),[saved,setSaved]=useState(false),[busy,setBusy]=useState(false),[err,setErr]=useState(''),[eb,setEb]=useState(EMB.ext?'ok':'off'),[ebm,setEbm]=useState('');
   const onEmb=async()=>{setEb('load');setEbm('A preparar…');try{await loadEmb(setEbm);setEb('ok');setEbm('');try{localStorage.setItem('phalpd_emb','1')}catch(e){}}catch(e){setEb('err');setEbm('Não foi possível carregar o modelo ('+(e.message||e)+'). Só funciona na versão alojada (https) e com internet.')}};
   useEffect(()=>{try{if(!EMB.ext&&localStorage.getItem('phalpd_emb')==='1')onEmb()}catch(e){}},[]);
+  const[db,setDb]=useState(DICT.sp?'ok':'off'),[dbm,setDbm]=useState('');
+  const onDict=async()=>{setDb('load');setDbm('A preparar…');try{await loadDict(setDbm);setDb('ok');setDbm('');try{localStorage.setItem('phalpd_dic','1')}catch(e){}}catch(e){setDb('err');setDbm('Não foi possível carregar o dicionário ('+(e.message||e)+'). Só funciona na versão alojada (https) e com internet.')}};
+  useEffect(()=>{try{if(!DICT.sp&&localStorage.getItem('phalpd_dic')==='1')onDict()}catch(e){}},[]);
   const c=t&&cls.find(k=>k.id===t.classId),ctx=t?ctxOf(t,tests):'',G=(t&&t.groups)||[],AQ=G.flatMap(g=>g.qs.map(q=>({g,q})));
   const extra=t&&t.reuse?tests.filter(o=>o.id!==t.id&&norm(o.author)===norm(t.author)).reduce((a,o)=>a+o.ctx.length,0):0;
   const upT=f=>setTests(tests.map(o=>o.id===t.id?f(o):o));
@@ -240,7 +290,7 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
   const mix=(a,b)=>Math.round(((1-lam)*a+lam*b)*2)/2;
   const cf=(es,el)=>{const cx=[];(el||[]).forEach(z=>{const nz=norm(z.nome);const it=es.find(i=>{const ni=norm(i.lab);return ni&&(nz.includes(ni)||ni.includes(nz))});if(it&&it.hit!==z.presente)cx.push(it.lab)});return cx};
   const fin=e=>e.tg!=null?e.tg:e.prop;
-  const run=async()=>{setBusy(true);const r={};for(const{g,q}of AQ){const a=ans(q.id);if(q.model&&q.model.trim()&&a.trim()){const d=qdom(q),ess=essOf(q);let sem=null;if(EMB.ext){try{sem=await semOf(a,q.model,ess)}catch(e){}}const x=feats(a,q.model,ctx+' '+g.intro,critDom(crit,d),ess,sem),e=Math.round(pred(m[d],x)*q.max*2)/2,na=norm(a);r[q.id]={x,d,eng:e,llm:null,tg:null,prop:e,tin:'',es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>na.includes(z))||!!(sem&&sem.hit[it.lab])})),wrong:x[11],sm:!!sem}}}setRs(r);setSaved(false);setBusy(false);setErr(Object.keys(r).length?'':'Preenche a resposta-modelo e a resposta do aluno em pelo menos uma questão.')};
+  const run=async()=>{setBusy(true);const r={},known=new Set(norm([t.paper?t.paper.text:'',ctx,...G.map(g=>g.intro+' '+g.qs.map(q=>q.text+' '+q.model).join(' '))].join(' ')).match(/[a-z]{3,}/g)||[]);for(const{g,q}of AQ){const a=ans(q.id);if(q.model&&q.model.trim()&&a.trim()){const d=qdom(q),ess=essOf(q);let sem=null;if(EMB.ext){try{sem=await semOf(a,q.model,ess)}catch(e){}}const lg=lingua(a,known),x=feats(a,q.model,ctx+' '+g.intro,critDom(crit,d),ess,sem,lg,rangeOf(q.text)),e=Math.round(pred(m[d],x)*q.max*2)/2,na=norm(a);r[q.id]={x,d,eng:e,llm:null,tg:null,prop:e,tin:'',es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>na.includes(z))||!!(sem&&sem.hit[it.lab])})),wrong:x[11],sm:!!sem,lg:{es:lg.es,ps:lg.ps}}}}setRs(r);setSaved(false);setBusy(false);setErr(Object.keys(r).length?'':'Preenche a resposta-modelo e a resposta do aluno em pelo menos uma questão.')};
   const ask=async()=>{if(!llm.key){setErr('Define a chave da API em "Segunda opinião (LLM)".');return}setBusy(true);setErr('');const r={...rs};
     for(const{g,q}of AQ){const e=rs[q.id];if(!e)continue;try{const o=await opinion(llm,{crit:critDom(crit,e.d),paper:t.paper?t.paper.text:'',ctx,intro:g.intro,q,ans:ans(q.id),ess:essOf(q).map(i=>i.lab).join('; ')});r[q.id]={...e,llm:o,prop:mix(e.eng,o.nota),cx:cf(e.es,o.el)};setRs({...r})}catch(x){setErr('Erro da API: '+x.message);break}}
     setBusy(false)};
@@ -262,6 +312,10 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
   <button class="btn g" onClick=${()=>setEd(!ed)}>${ed?'Concluir edição':'Editar estrutura'}</button>
   ${t.paper&&h`<button class="btn g" onClick=${rp}>Reler estrutura do PDF</button>`}</div>
   ${err&&h`<div class="note">${err}</div>`}
+  ${t.paper&&h`<details style="margin-top:10px"><summary class="mu">Texto lido do PDF do teste — ${t.paper.text.length.toLocaleString('pt-PT')} caracteres · ${G.length} grupo(s) · ${AQ.length} questão(ões)</summary><div class="mu" style="white-space:pre-wrap;max-height:200px;overflow:auto">${t.paper.text.slice(0,1500)}</div></details>`}
+  <details style="margin-top:10px"><summary class="mu">Dicionário e pontuação — ${db==='ok'?'dicionário ativo ✔':'só pontuação'}</summary>
+  <p class="mu">A pontuação é verificada sempre, com regras: vírgula entre o verbo e o seu complemento, vírgula depois de preposição, falta de vírgula antes de «mas», conectores sem vírgula, espaços e maiúsculas. Com o dicionário (português de Portugal, ~1,5 MB) verifica também a ortografia. Não é um analisador sintático completo: não deteta erros de concordância nem de estrutura da frase, e pode apontar casos legítimos — os avisos servem para rever, não para descontar sem ler.</p>
+  <div class="row"><button class="btn s" disabled=${db==='load'||db==='ok'} onClick=${onDict}>${db==='ok'?'Dicionário carregado':db==='load'?'A carregar…':'Ativar dicionário'}</button></div>${dbm&&h`<div class="note">${dbm}</div>`}</details>
   <details style="margin-top:10px"><summary class="mu">Análise semântica local (embeddings) — ${eb==='ok'?'ativa ✔':'desligada'}</summary>
   <p class="mu">Um pequeno modelo neuronal (MiniLM multilingue, ~120 MB) transforma cada frase em 384 números; frases com o mesmo sentido ficam com números próximos, mesmo com palavras diferentes. Corre neste navegador: nenhum texto sai do teu computador. Não é um LLM: não escreve nem raciocina, só mede proximidade de sentido. Não distingue bem figuras de estilo parecidas — para isso servem os elementos essenciais.</p>
   <div class="row"><button class="btn s" disabled=${eb==='load'||eb==='ok'} onClick=${onEmb}>${eb==='ok'?'Modelo carregado':eb==='load'?'A carregar…':'Ativar análise semântica'}</button></div>${ebm&&h`<div class="note">${ebm}</div>`}</details>
@@ -285,6 +339,7 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
   ${(r.es.length>0||r.wrong>0)&&h`<p class="mu">Essenciais: ${r.es.map(e=>(e.hit?'✔ ':'✘ ')+e.lab).join(' · ')}${r.wrong?' · figura de estilo diferente da do modelo':''}</p>`}
   ${r.llm&&h`<p class="mu">${r.cx.length?'⚠ Motor e LLM discordam em: '+r.cx.join(', ')+' — rever com atenção.':'Motor e LLM concordam nos elementos verificados.'}${r.llm.el.length?' · LLM: '+r.llm.el.map(z=>(z.presente?'✔ ':'✘ ')+z.nome).join(' · '):''}</p>`}
   <div class="row"><input type="number" step="0.5" min="0" max=${q.max} placeholder=${'Nota do professor (proposta '+r.prop+')'} value=${r.tin} onInput=${e=>setRs({...rs,[q.id]:{...r,tin:e.target.value}})}/><button class="btn s" onClick=${()=>reg(q.id)}>${r.tg!=null?'Registada ✔ (volta a registar para corrigir)':'Registar nota do professor'}</button></div>
+  ${r.lg&&(r.lg.es.length+r.lg.ps.length>0)&&h`<details><summary class="mu">Correção linguística: ${r.lg.es.length} de ortografia · ${r.lg.ps.length} de pontuação (para rever)</summary>${[...r.lg.es,...r.lg.ps].slice(0,25).map((e,i)=>h`<div key=${i} class="mu">• ${e.soft?'(aviso) ':''}${e.msg} <i>${e.ctx}</i></div>`)}</details>`}
   <details><summary class="mu">Parâmetros do motor</summary>${FN.map((f,i)=>h`<div key=${f} style="margin:5px 0"><span class="mu">${f} · peso ${m[r.d].w[i].toFixed(2)}</span><div class="bar"><i style=${{width:Math.round(r.x[i]*100)+'%'}}></i></div></div>`)}</details></div>`}</div>`})}
   ${ed&&h`<div style="margin-top:10px"><button class="btn g s" onClick=${()=>upG(g.id,{qs:[...g.qs,{id:'q'+Date.now(),label:String(g.qs.length+1),text:'',max:10,model:'',dom:'EL'}]})}>+ Questão</button></div>`}</div>`)}
   ${ed&&h`<div style="margin-top:16px"><button class="btn g" onClick=${()=>upT(o=>({...o,groups:[...(o.groups||[]),{id:'g'+Date.now(),name:'Grupo',intro:'',qs:[]}]}))}>+ Grupo</button></div>`}</div>`}</div>`;
@@ -303,7 +358,7 @@ function Tests({tests,setTests,cls,setTid,go}){
 function App(){
   const[pg,setPg]=useState('inicio'),[tid,setTid]=useState(null);
   const[cls,setCls]=usePersist('phalpd_cls',[{id:1,name:'12.º A',students:[]}]);
-  const[m,setM]=usePersist('phalpd_model4',MD0);
+  const[m,setM]=usePersist('phalpd_model5',MD0);
   const[st,setSt]=usePersist('phalpd_stats',{n:0,eE:0,nl:0,eL:0});
   const[llm,setLlm]=usePersist('phalpd_llm',{prov:'gemini',key:'',model:''});
   const[docs,setDocs]=usePersist('phalpd_docs',{crit:[]});
@@ -314,7 +369,7 @@ function App(){
   <nav>${PAGES.map(([k,t])=>h`<a key=${k} class=${pg===k?'on':''} onClick=${()=>setPg(k)}>${t}</a>`)}</nav>
   <button class="btn g s" onClick=${()=>{}}>Iniciar sessão / Criar conta</button></header>
   <main>${pg==='inicio'?h`<${Home} go=${setPg} m=${{n:nfb}}/>`:pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls}/>`:pg==='crit'?h`<div><${Upload} title="Critérios de avaliação" desc="Carrega o PDF dos critérios do ano corrente. Pode conter todas as disciplinas: a FALPD usa apenas as páginas de Português 12.º e, em cada questão, só o domínio respetivo (Leitura, Educação literária, Escrita ou Gramática)." multi=${false} items=${crit} onAdd=${d=>setDocs(o=>({...o,crit:[d]}))} onDel=${i=>setDocs(o=>({...o,crit:(o.crit||[]).filter((_,j)=>j!==i)}))}/>${crit.length>0&&h`<div class="note">${pp[0]?'Páginas de Português 12.º reconhecidas: '+pp[0]+' de '+pp[1]+'. As restantes disciplinas são ignoradas.':'Não encontrei páginas de Português 12.º neste PDF — vai ser usado o documento inteiro.'}</div>`}</div>`:pg==='tests'?h`<${Tests} tests=${tests} setTests=${setTests} cls=${cls} setTid=${setTid} go=${setPg}/>`:h`<${Correct} cls=${cls} setCls=${setCls} crit=${ctext} m=${m} setM=${setM} st=${st} setSt=${setSt} llm=${llm} setLlm=${setLlm} tests=${tests} setTests=${setTests} tid=${tid} setTid=${setTid}/>`}</main>
-  <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados.</footer><//>`;
+  <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados. <span style="opacity:.5">· versão 02-11-d</span></footer><//>`;
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h`<${EB}><${App}/><//>`);
 </script>
