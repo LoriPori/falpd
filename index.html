@@ -310,6 +310,24 @@ tbody tr:hover td{background:rgba(255,106,0,.08)}
 .hr{background:var(--wnb);border-radius:4px;padding:0 2px}
 .pair{display:grid;grid-template-columns:1fr auto;gap:6px 14px;padding:14px 16px;background:var(--sf);border:1px solid var(--bd);border-radius:14px;margin-top:10px}
 .pair .pc{font-size:24px;font-weight:800;text-align:right}.pair .bar{grid-column:1/-1}.pair .sh2{grid-column:1/-1;font-size:13px;color:var(--mu)}
+
+/* ===== v4: PDF dentro do card + gráficos integrados ===== */
+.files{grid-template-columns:minmax(0,1fr)}.file{min-width:0;max-width:100%;box-sizing:border-box}.file .fi{min-width:0}.file .pv{max-width:100%}
+.sec,.card,.land .blk{min-width:0}
+.bar{height:10px;border-radius:99px;background:color-mix(in srgb,var(--bd) 60%,transparent);box-shadow:inset 0 1px 2px rgba(60,30,10,.08)}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--or),var(--or2));transform-origin:left;animation:barGrow .8s var(--ease) both}
+.bar.ok i{background:linear-gradient(90deg,#2fb877,var(--ok))}.bar.warn i{background:linear-gradient(90deg,#ffc15a,#e08a00)}.bar.err i{background:linear-gradient(90deg,#ff9a92,var(--er))}
+.chart-row{padding:12px 14px;border:1px solid color-mix(in srgb,var(--bd) 70%,transparent);border-radius:14px;background:var(--sf2);transition:transform .2s var(--ease),border-color .2s}
+.chart-row:hover{transform:translateX(3px);border-color:var(--or2)}
+.chart-rows{gap:10px}
+.histo{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr;gap:12px;height:190px;padding:26px 14px 0;border:1px solid color-mix(in srgb,var(--bd) 70%,transparent);border-bottom:2px solid var(--or);border-radius:16px 16px 0 0;background:repeating-linear-gradient(to top,transparent 0 calc(25% - 1px),color-mix(in srgb,var(--bd) 80%,transparent) calc(25% - 1px) 25%),var(--sf2)}
+.hcol{position:relative;gap:4px}
+.hcol>span:first-child{font-size:12px;font-weight:800;background:var(--sf);border:1px solid var(--bd);border-radius:99px;padding:0 8px;line-height:20px}
+.hcol>span:last-child{position:absolute;bottom:-26px;font-size:11px;color:var(--mu)}
+.hbar{max-width:76px;border-radius:10px 10px 0 0;box-shadow:0 -4px 16px -6px rgba(255,106,0,.45);transform-origin:bottom;animation:growY .7s var(--ease) both}
+.hbar:hover{filter:brightness(1.08)}
+@keyframes growY{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.histo{margin-bottom:30px}
 </style>
 </head>
 <body>
@@ -340,14 +358,16 @@ const RES=['metafora','ironia','satira','caricatura','comparacao','personificaca
 const INF=['sugere','simboliza','revela','evidencia','transmite','remete','denuncia','implicito','subentend','critica','reflete','representa','demonstra'];
 const CON=['porque','pois','portanto','logo','assim','contudo','no entanto','alem disso','por isso','deste modo','dado que','uma vez que','em suma','por outro lado'];
 const FN=['Semelhança com a resposta-modelo','Cobertura dos conceitos-chave','Expressões coincidentes (bigramas)','Alinhamento com o contexto da obra','Alinhamento com os critérios do domínio','Recursos expressivos','Extensão adequada','Interpretação do subentendido','Conectores / coesão','Diversidade lexical','Elementos essenciais presentes','Figura de estilo trocada','Semântica: o aluno diz o que o modelo diz','Semântica: o que o aluno diz está no modelo','Ortografia (dicionário)','Pontuação'];
-const W0={w:[1.6,1.8,1.2,.4,.3,.5,.8,.4,.4,.3,1.6,-.4,1.4,.6,.5,.5],b:-4.3,n:0,h:[]},WE={w:[.8,1,.5,.4,.3,.5,1.2,.4,.8,.8,1.6,-.4,.8,.4,1.2,1],b:-4.4,n:0,h:[]},MD0={EL:W0,ES:WE,GR:W0,LE:W0};
+/* Priors v3. Ordem = FN: [modelo, conceitos, bigramas, contexto, critérios, recursos, extensão, subentendido, conectores, diversidade, essenciais, figura trocada, sem.cob, sem.prec, ortografia, pontuação].
+   Respostas curtas (EL/GR/LE): peso na proximidade ao modelo, bias mais suave (resposta mediana ≈ 50%). Escrita (ES): pouco peso no modelo, muito em estrutura, coesão, ortografia e pontuação. Figura trocada: penalização forte. */
+const W0={w:[1.4,1.6,1,.3,.3,.4,.6,.4,.3,.2,1.4,-2.6,1.6,.7,.5,.6],b:-3,n:0,h:[]},WE={w:[.3,.4,.2,.6,.6,.7,1.6,.6,1.2,1.2,.5,-1.5,.5,.3,1.8,1.6],b:-7.2,n:0,h:[]},MD0={EL:W0,ES:WE,GR:W0,LE:W0};
 const FIGN={metafor:'metáfora',comparac:'comparação',personific:'personificação',hiperbol:'hipérbole',ironi:'ironia',antites:'antítese',enumerac:'enumeração',gradac:'gradação',sinestes:'sinestesia',adjetivac:'adjetivação',aliterac:'aliteração',anafor:'anáfora',apostrof:'apóstrofe',eufemism:'eufemismo',paradox:'paradoxo',oximor:'oxímoro',simbol:'símbolo',alegor:'alegoria',caricatur:'caricatura',satir:'sátira',assindet:'assíndeto',polissindet:'polissíndeto',retoric:'interrogação retórica'};
 const FIG=Object.keys(FIGN),figs=t=>{const n=norm(t);return FIG.filter(f=>n.includes(f))};
 
 /* elementos essenciais: definidos pelo professor ou, por defeito, as figuras de estilo nomeadas na resposta-modelo */
 const essOf=q=>{const L=(q.chave||'').split('\n').map(x=>x.trim()).filter(Boolean);return L.length?L.map(l=>{const[a,w]=l.split('::');return{lab:a.trim(),alts:a.split('|').map(x=>norm(x).trim()).filter(Boolean),w:+w||1}}):figs(q.model||'').map(f=>({lab:FIGN[f],alts:[f],w:2}))};
 const sig=z=>1/(1+Math.exp(-z));
-const pred=(m,x)=>sig(m.b+x.reduce((s,v,i)=>s+v*m.w[i],0));
+const pred=(m,x)=>{const p=sig(m.b+x.reduce((s,v,i)=>s+v*m.w[i],0));return x[11]>0?Math.min(p,.4):p};
 const hits=(a,l)=>l.filter(w=>a.includes(w)).length;
 const bg=a=>a.slice(1).map((w,i)=>a[i]+'_'+w);
 
@@ -1071,7 +1091,7 @@ function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
  return h`<div class="page-anim"><div class="ph">
   <div><h1>Turmas e Análise Estatística</h1><p class="mu">Painel coletivo da turma, diagnóstico de lacunas para aulas de revisão e exportação de relatórios (Excel, CSV Inovar/GIAE e PDF).</p></div>
   ${c&&h`<div class="exp-bar">
-   <button class="btn ok s" onClick=${()=>exportClassExcel(c,an)} title="Descarregar ficheiro Excel formatado (.xls)"><${Ico} n="down" s=${15}/> Excel Bonito (.xls)</button>
+   <button class="btn ok s" onClick=${()=>exportClassExcel(c,an)} title="Descarregar Excel (.xls)"><${Ico} n="down" s=${15}/> Excel</button>
    <button class="btn g s" onClick=${()=>exportClassCSV(c,an)} title="Exportar CSV compatível com Inovar e GIAE"><${Ico} n="down" s=${15}/> CSV (Inovar / GIAE)</button>
    <button class="btn k s" onClick=${()=>exportClassPDF(c,an)} title="Gerar relatório em PDF para impressão"><${Ico} n="file" s=${15}/> Relatório PDF</button>
   </div>`}
@@ -1527,10 +1547,12 @@ function SimPage(){
  ${hit.length?hit.slice(0,15).map((x,i)=>h`<div class="pair" key=${i}><b>${x.a} ↔ ${x.b}</b><span class=${'pc chip '+(x.pc>=60?'err':'warn')}>${x.pc}%</span><div class="bar"><i style=${{width:x.pc+'%'}}></i></div><div class="sh2">Sequências comuns: ${x.ex.map(e=>'«'+e+'»').join(' · ')||'—'}</div></div>`):h`<div class="note ok">Nenhum par acima de ${th}%.</div>`}`:h`<div class="sec empty"><div class="fic"><${Ico} n="layers" s=${24}/></div><h3>Cola pelo menos duas respostas</h3><span>Cada resposta precisa de umas 8 palavras ou mais.</span></div>`}</div>`;
 }
 
+/* migra as notas já dadas (histórico) para os novos priors, sem perder o que o motor aprendeu */
+const MD1=(()=>{try{const o=JSON.parse(localStorage.getItem('phalpd_model5')||'null');if(!o)return MD0;const r={};for(const k in MD0){const h=(o[k]&&o[k].h)||[];r[k]=h.length?train({...MD0[k],h:h.slice(0,-1),n:Math.max((o[k].n||1)-1,0)},h[h.length-1][0],h[h.length-1][1]):MD0[k]}return r}catch(e){return MD0}})();
 function App(){
  const[pg,setPg]=useState('inicio'),[tid,setTid]=useState(null);
  const[cls,setCls]=usePersist('phalpd_cls',[{id:1,name:'12.º A',students:[]}]);
- const[m,setM]=usePersist('phalpd_model5',MD0);
+ const[m,setM]=usePersist('phalpd_model6',MD1);
  const[st,setSt]=usePersist('phalpd_stats',{n:0,eE:0,nl:0,eL:0});
  const[llm,setLlm]=usePersist('phalpd_llm',{prov:'gemini',key:'',model:''});
  const[docs,setDocs]=usePersist('phalpd_docs',{crit:[]});
@@ -1568,7 +1590,7 @@ function App(){
   :pg==='auth'?h`<${AuthPage} user=${user} setUser=${setUser} go=${go}/>`
   :h`<${Correct} cls=${cls} setCls=${setCls} crit=${ctext} m=${m} setM=${setM} st=${st} setSt=${setSt} llm=${llm} setLlm=${setLlm} tests=${tests} setTests=${setTests} tid=${tid} setTid=${setTid} go=${go}/>`}
  </main>
- <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados. <span style="opacity:.5">· versão 03-01-batch-stats</span></footer><//>`;
+ <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados. <span style="opacity:.5">· versão 03-04-motor-v3</span></footer><//>`;
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h`<${EB}><${App}/><//>`);
 </script>
