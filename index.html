@@ -256,6 +256,60 @@ details.adv>summary:hover{color:var(--ort)}details.adv>div,details.adv>p,details
 
 footer{background:var(--dk);color:var(--dkt);text-align:center;padding:18px 18px 24px;font-size:13px;border-top:4px solid var(--or)}
 @media(max-width:860px){footer{padding-bottom:90px}}
+
+/* ===== Refinamento visual v2 ===== */
+:root{--r:18px;--sh:0 1px 2px rgba(60,30,10,.04),0 12px 32px -8px rgba(60,30,10,.1)}
+body{background:radial-gradient(900px 420px at 85% -80px,rgba(255,106,0,.09),transparent 70%),var(--bg);letter-spacing:-.003em}
+.top{box-shadow:0 1px 0 var(--bd);background:color-mix(in srgb,var(--sf) 82%,transparent);backdrop-filter:saturate(1.6) blur(14px)}
+.top:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--or),var(--or2) 40%,transparent 85%)}
+.nav button{border-radius:99px;padding:8px 15px;font-weight:600}
+.nav button[aria-current=page]{box-shadow:0 4px 14px -2px rgba(255,106,0,.45)}
+.sec,.card,.step,.stat{border-radius:var(--r);border-color:color-mix(in srgb,var(--bd) 70%,transparent)}
+.card:hover,.step:hover,.stat:hover{border-color:var(--or2);transform:translateY(-2px)}
+.btn{border-radius:12px;box-shadow:0 1px 0 var(--ord),0 6px 14px -6px rgba(255,106,0,.55)}
+.btn:hover:not(:disabled){box-shadow:0 1px 0 var(--ord),0 10px 20px -6px rgba(255,106,0,.6);transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:none;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)}
+.hero{border-radius:32px;background:radial-gradient(520px 320px at 100% 0,rgba(255,106,0,.35),transparent 70%),linear-gradient(135deg,var(--dk) 60%,#3a1a09)}
+.hero:after{display:none}
+.hero h1{font-size:clamp(32px,5.2vw,54px);line-height:1.08}
+.eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:11.5px;font-weight:700}
+.blk h2{font-size:clamp(22px,3vw,30px);letter-spacing:-.015em;margin-top:4px}
+input,textarea,select{border-radius:12px;background:var(--sf)}
+footer{border-top:0;background:linear-gradient(180deg,var(--dk),#0d0804);font-size:12.5px;opacity:.96}
+.tool-h{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+.tool-h h1{font-size:clamp(26px,4vw,34px);font-weight:800;letter-spacing:-.02em}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px}
+.cm{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s,transform .2s var(--ease)}
+.cm:hover{border-color:var(--or2);transform:translateY(-2px)}
+.cm p{font-size:14px;line-height:1.55}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);padding:8px;border-bottom:2px solid var(--or);white-space:nowrap}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--bd)}
+.tbl input{padding:6px 8px;min-width:64px;border-radius:8px}
+.tbl .fin{font-weight:800;color:var(--ort);font-size:16px;text-align:right}
+.scroll{overflow-x:auto;border-radius:12px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button{border:1.5px solid var(--bd);background:var(--sf);color:var(--mu);border-radius:99px;padding:5px 13px;font:600 12.5px 'Sora',sans-serif;cursor:pointer;transition:all .18s}
+.seg button[aria-pressed=true]{background:var(--or);border-color:var(--or);color:var(--onor)}
+
+/* ===== v3: tabelas e páginas internas (fora do aspeto "folha de cálculo") ===== */
+.tw{border:0;border-radius:var(--r);background:var(--sf);box-shadow:var(--sh)}
+th{background:var(--sf2);color:var(--mu);font-size:11px;font-weight:700;padding:12px 14px;border-bottom:2px solid var(--or)}
+th:first-child{border-top-left-radius:var(--r)}th:last-child{border-top-right-radius:var(--r)}
+td{padding:10px 14px;border-top:1px solid color-mix(in srgb,var(--bd) 55%,transparent)}
+tbody tr:first-child td{border-top:0}tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--sf2) 45%,transparent)}
+tbody tr:hover td{background:rgba(255,106,0,.08)}
+.pill{border-width:1px;border-color:var(--bd);color:var(--mu);background:var(--sf);padding:8px 18px}
+.pill:hover{border-color:var(--or);color:var(--ort);background:var(--sf2)}.pill.on{background:var(--or);border-color:var(--or);color:var(--onor);box-shadow:0 4px 14px -4px rgba(255,106,0,.5)}
+.stat{padding:18px;position:relative;overflow:hidden}.stat:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--or),var(--or2))}
+.stat b{font-size:30px;letter-spacing:-.02em}
+.ph h1{letter-spacing:-.02em}
+.gap-item{border-radius:14px}
+.doc{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:18px 20px;line-height:2;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.hf{background:rgba(255,106,0,.24);border-bottom:2px solid var(--or);border-radius:4px;padding:0 2px}
+.hc{background:var(--okb);border-bottom:2px solid var(--ok);border-radius:4px;padding:0 2px}
+.hr{background:var(--wnb);border-radius:4px;padding:0 2px}
+.pair{display:grid;grid-template-columns:1fr auto;gap:6px 14px;padding:14px 16px;background:var(--sf);border:1px solid var(--bd);border-radius:14px;margin-top:10px}
+.pair .pc{font-size:24px;font-weight:800;text-align:right}.pair .bar{grid-column:1/-1}.pair .sh2{grid-column:1/-1;font-size:13px;color:var(--mu)}
 </style>
 </head>
 <body>
@@ -765,7 +819,7 @@ const Logo=({s=40})=>h`<svg width=${s} height=${s} viewBox="0 0 64 64" role="img
 <g stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M14 30L22 38L26 28M22 38L26 46M38 28L46 36L52 28M46 36L42 46"/></g>
 <g fill="#1b120c" stroke="#fff" strokeWidth="1.5"><circle cx="14" cy="30" r="3"/><circle cx="22" cy="38" r="3"/><circle cx="26" cy="28" r="3"/><circle cx="26" cy="46" r="3"/><circle cx="38" cy="28" r="3"/><circle cx="46" cy="36" r="3"/><circle cx="52" cy="28" r="3"/><circle cx="42" cy="46" r="3"/></g>
 <path d="M40 6l3 5 5 1-4 4 1 5-5-3-5 3 1-5-4-4 5-1z" fill="#ff6a00" stroke="#1b120c" strokeWidth="1.5" transform="translate(-3 -2) scale(.8)"/></svg>`;
-const NAV=[['inicio','Início','home'],['dash','Turmas','users'],['crit','Critérios','list'],['tests','Testes','file'],['corr','Correção','pen']];
+const NAV=[['inicio','Início','home'],['dash','Turmas','users'],['crit','Critérios','list'],['tests','Testes','file'],['corr','Correção','pen'],['lab','Laboratório','spark'],['sim','Semelhanças','layers']];
 const fmtN=n=>n.toLocaleString('pt-PT');
 const isPdf=f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name);
 const wc=s=>(s.match(/\p{L}+/gu)||[]).length;
@@ -1439,6 +1493,40 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
 }
 
 /* ===== App ===== */
+
+
+/* ===== Laboratório de Texto ===== */
+const CW=new Set('porque pois portanto logo assim contudo todavia porem embora visto conquanto enquanto ora'.split(' '));
+function LabPage(){
+ const[t,setT]=useState(''),T=t.trim();
+ const parts=T?t.split(/(\p{L}+(?:-\p{L}+)*)/u):[],ws=parts.filter((_,i)=>i%2),nws=ws.map(norm);
+ const sents=(T.match(/[^.!?…]+[.!?…]*/g)||[]).filter(x=>x.trim()),lens=sents.map(x=>wc(x)),uniq=new Set(nws).size;
+ const fc={},rep={};nws.forEach(w=>{const f=FIG.find(f=>w.startsWith(f));if(f)fc[f]=(fc[f]||0)+1;if(w.length>4&&!STOP.has(w)&&!CW.has(w))rep[w]=(rep[w]||0)+1});
+ const reps=Object.entries(rep).filter(x=>x[1]>2).sort((a,b)=>b[1]-a[1]).slice(0,6),ln=T?lingua(t,null):null;
+ const conn=nws.filter(w=>CW.has(w)).length;
+ let k=0;const hl=parts.map((x,i)=>{if(!(i%2))return x;const w=norm(x);return FIG.some(f=>w.startsWith(f))?h`<mark class="hf" key=${i}>${x}</mark>`:CW.has(w)?h`<mark class="hc" key=${i}>${x}</mark>`:rep[w]>2&&w.length>4&&!STOP.has(w)?h`<mark class="hr" key=${i}>${x}</mark>`:x});
+ return h`<div class="page-anim"><div class="ph"><div><div class="eyebrow">Ferramenta</div><h1>Laboratório de texto</h1><p class="mu">Cola uma composição ou resposta e vê, no próprio texto, as figuras de estilo, os conectores, as repetições e os erros de pontuação. Tudo local.</p></div>${T&&h`<button class="btn g" onClick=${()=>setT('')}>Limpar</button>`}</div>
+ <div class="sec" style="margin-top:0"><div class="fld"><label for="lt">Texto</label><textarea id="lt" style="min-height:150px" value=${t} onInput=${e=>setT(e.target.value)} placeholder="Cola aqui o texto do aluno…"></textarea></div></div>
+ ${T?h`<div class="stats"><div class="stat"><b>${ws.length}</b><span>palavras</span></div><div class="stat"><b>${sents.length}</b><span>frases · média ${sents.length?Math.round(ws.length/sents.length):0} pal.</span></div><div class="stat"><b>${ws.length?Math.round(uniq/ws.length*100):0}%</b><span>diversidade lexical</span></div><div class="stat"><b>${conn}</b><span>conectores</span></div><div class="stat"><b>${ln.ps.length}</b><span>alertas de pontuação</span></div></div>
+ <div class="sec"><div class="chips" style="margin-bottom:12px"><span class="chip or">■ recurso expressivo</span><span class="chip ok">■ conector</span><span class="chip warn">■ palavra repetida</span></div><div class="doc">${hl}</div>
+ ${Object.keys(fc).length>0&&h`<div class="chips" style="margin-top:14px">${Object.entries(fc).map(([f,n])=>h`<span class="chip or" key=${f}>${FIGN[f]} ×${n}</span>`)}</div>`}
+ ${reps.length>0&&h`<p class="mu" style="margin-top:12px">Mais repetidas: ${reps.map(([w,n])=>w+' ('+n+')').join(', ')}. Frase mais longa: ${Math.max(...lens)} palavras.</p>`}</div>
+ <div class="sec"><h3>Pontuação</h3>${ln.ps.length?h`<div class="gap-list">${ln.ps.slice(0,12).map((e,i)=>h`<div class=${'gap-item '+(e.soft?'warn':'crit')} key=${i}><div><b>${e.msg}</b><div class="mu">${e.ctx}</div></div></div>`)}</div>`:h`<div class="note ok">Sem alertas de pontuação.</div>`}
+ ${!DICT.sp&&h`<p class="mu" style="margin-top:12px">Ortografia: carrega o dicionário em «Correção» para também verificar a ortografia aqui.</p>`}${ln.es.length>0&&h`<p style="margin-top:12px"><b>Possíveis erros ortográficos:</b> ${ln.es.slice(0,15).map(e=>e.msg.replace('ortografia: ','')).join(', ')}</p>`}</div>`:h`<div class="sec empty"><div class="fic"><${Ico} n="spark" s=${24}/></div><h3>Cola um texto para começar</h3><span>A análise aparece à medida que escreves.</span></div>`}</div>`;
+}
+/* ===== Detetor de Semelhanças ===== */
+function SimPage(){
+ const[t,setT]=useState(''),[th,setTh]=useState(35);
+ const items=t.split(/\n\s*-{3,}\s*\n/).map((b,i)=>{const L=b.trim().split('\n'),nm=/^.{1,40}:\s*$/.test(L[0])?L.shift().replace(/:\s*$/,''):'Resposta '+(i+1),tx=L.join(' ').trim(),tk=norm(tx).match(/[a-z0-9]+/g)||[],sh=new Set();for(let j=0;j+4<=tk.length;j++)sh.add(tk.slice(j,j+4).join(' '));return{nm,sh,n:tk.length}}).filter(x=>x.n>=8);
+ const pairs=[];for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){const A=items[i].sh,B=items[j].sh,sh=[...A].filter(x=>B.has(x)),pc=Math.round(sh.length/Math.max(1,Math.min(A.size,B.size))*100);pairs.push({a:items[i].nm,b:items[j].nm,pc,ex:sh.slice(0,3)})}
+ pairs.sort((x,y)=>y.pc-x.pc);const hit=pairs.filter(x=>x.pc>=th);
+ return h`<div class="page-anim"><div class="ph"><div><div class="eyebrow">Ferramenta</div><h1>Detetor de semelhanças</h1><p class="mu">Compara respostas da mesma questão e assinala pares com sequências de palavras iguais, um sinal de cópia a verificar. Não acusa ninguém: só mostra a evidência.</p></div></div>
+ <div class="sec" style="margin-top:0"><div class="fld"><label for="st">Respostas (separa cada uma com uma linha «---»; opcionalmente começa com «Nome:»)</label><textarea id="st" style="min-height:200px" value=${t} onInput=${e=>setT(e.target.value)} placeholder=${'Ana:\nA comparação com a cegonha mostra…\n---\nBruno:\nA comparação com a cegonha mostra…'}></textarea></div>
+ <div class="fld" style="max-width:240px;margin-top:12px"><label for="sl">Sinalizar a partir de ${th}%</label><input id="sl" type="range" min="10" max="90" step="5" value=${th} onInput=${e=>setTh(+e.target.value)}/></div></div>
+ ${items.length>1?h`<div class="stats"><div class="stat"><b>${items.length}</b><span>respostas lidas</span></div><div class="stat"><b>${pairs.length}</b><span>pares comparados</span></div><div class="stat"><b>${hit.length}</b><span>pares sinalizados</span></div></div>
+ ${hit.length?hit.slice(0,15).map((x,i)=>h`<div class="pair" key=${i}><b>${x.a} ↔ ${x.b}</b><span class=${'pc chip '+(x.pc>=60?'err':'warn')}>${x.pc}%</span><div class="bar"><i style=${{width:x.pc+'%'}}></i></div><div class="sh2">Sequências comuns: ${x.ex.map(e=>'«'+e+'»').join(' · ')||'—'}</div></div>`):h`<div class="note ok">Nenhum par acima de ${th}%.</div>`}`:h`<div class="sec empty"><div class="fic"><${Ico} n="layers" s=${24}/></div><h3>Cola pelo menos duas respostas</h3><span>Cada resposta precisa de umas 8 palavras ou mais.</span></div>`}</div>`;
+}
+
 function App(){
  const[pg,setPg]=useState('inicio'),[tid,setTid]=useState(null);
  const[cls,setCls]=usePersist('phalpd_cls',[{id:1,name:'12.º A',students:[]}]);
@@ -1475,6 +1563,8 @@ function App(){
   :pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls} tests=${tests} setTests=${setTests} m=${m} crit=${ctext} go=${go} setTid=${setTid}/>`
   :pg==='crit'?h`<${CritPage} crit=${crit} setDocs=${setDocs} pp=${pp}/>`
   :pg==='tests'?h`<${Tests} tests=${tests} setTests=${setTests} cls=${cls} setTid=${setTid} go=${go} m=${m} crit=${ctext}/>`
+  :pg==='lab'?h`<${LabPage}/>`
+  :pg==='sim'?h`<${SimPage}/>`
   :pg==='auth'?h`<${AuthPage} user=${user} setUser=${setUser} go=${go}/>`
   :h`<${Correct} cls=${cls} setCls=${setCls} crit=${ctext} m=${m} setM=${setM} st=${st} setSt=${setSt} llm=${llm} setLlm=${setLlm} tests=${tests} setTests=${setTests} tid=${tid} setTid=${setTid} go=${go}/>`}
  </main>
