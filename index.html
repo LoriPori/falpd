@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
@@ -8,11 +7,11 @@ html
 <title>FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap">
 <style>
-:root{--or:#ff6a00;--or2:#ff8c3a;--ord:#c24e00;--ort:#b84700;--onor:#1b120c;--bg:#fffaf5;--sf:#fff;--sf2:#fff4ea;--tx:#2a1a10;--mu:#7a6555;--bd:#f3dfcf;--dk:#1b120c;--dkt:#fff3e8;--ok:#14804a;--okb:rgba(20,128,74,.12);--er:#c62d26;--erb:rgba(198,45,38,.1);--wn:#8a5200;--wnb:rgba(255,170,0,.2);--sh:0 1px 2px rgba(60,30,10,.05),0 10px 28px rgba(60,30,10,.06);--hh:62px}
+:root{--or:#ff6a00;--or2:#ff8c3a;--ord:#c24e00;--ort:#b84700;--onor:#1b120c;--bg:#fffaf5;--sf:#fff;--sf2:#fff4ea;--tx:#2a1a10;--mu:#7a6555;--bd:#f3dfcf;--dk:#1b120c;--dkt:#fff3e8;--ok:#14804a;--okb:rgba(20,128,74,.12);--er:#c62d26;--erb:rgba(198,45,38,.1);--wn:#8a5200;--wnb:rgba(255,170,0,.2);--sh:0 1px 2px rgba(60,30,10,.05),0 10px 28px rgba(60,30,10,.06);--hh:62px;--ease:cubic-bezier(.22,1,.36,1)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#150e09;--sf:#241a12;--sf2:#2d2118;--tx:#fbeee2;--mu:#c2a994;--bd:#3d2c1f;--dk:#0d0804;--ort:#ff9a55;--ok:#4cd08a;--okb:rgba(76,208,138,.14);--er:#ff8a82;--erb:rgba(255,122,114,.14);--wn:#ffc15a;--wnb:rgba(255,193,90,.14);--sh:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.25)}}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:calc(var(--hh) + 110px)}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 'Sora',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 'Sora',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 #root{min-height:100vh;display:flex;flex-direction:column}
 h1,h2,h3,p{margin:0}h1,h2,h3{line-height:1.2}
 button{font-family:inherit}
@@ -20,32 +19,55 @@ button{font-family:inherit}
 .mu{color:var(--mu);font-size:14px}
 .ico{flex:0 0 auto;vertical-align:middle}
 
+/* ===== Animações suaves e modernas ===== */
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes floatSlow{0%,100%{transform:rotate(1.5deg) translateY(0)}50%{transform:rotate(1deg) translateY(-6px)}}
+@keyframes pulseSoft{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes barGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+.page-anim{animation:fadeSlideUp .42s var(--ease) both}
+.sec,.card,.step,.stat,.q{animation:fadeSlideUp .38s var(--ease) both;transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease)}
+.card:hover,.step:hover,.stat:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(60,30,10,.1)}
+.grid>.card:nth-child(1),.steps>.step:nth-child(1){animation-delay:.03s}
+.grid>.card:nth-child(2),.steps>.step:nth-child(2){animation-delay:.07s}
+.grid>.card:nth-child(3),.steps>.step:nth-child(3){animation-delay:.11s}
+.grid>.card:nth-child(4),.steps>.step:nth-child(4){animation-delay:.15s}
+.grid>.card:nth-child(5){animation-delay:.19s}
+.grid>.card:nth-child(6){animation-delay:.23s}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
 /* cabeçalho + navegação */
-.top{position:sticky;top:0;z-index:20;height:calc(var(--hh) + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) clamp(14px,3vw,28px) 0;background:var(--sf);box-shadow:0 2px 0 var(--or);display:flex;align-items:center;gap:20px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:1px;cursor:pointer;color:var(--tx);background:none;border:0;padding:0}.brand b{color:var(--or)}
-.nav{display:flex;gap:4px;margin-left:auto}
-.nav button{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--mu);font:600 14px 'Sora',sans-serif;padding:9px 14px;border-radius:10px;cursor:pointer;transition:.15s}
-.nav button:hover{color:var(--ort);background:rgba(255,106,0,.1)}
-.nav button[aria-current=page]{background:var(--or);color:var(--onor)}
+.top{position:sticky;top:0;z-index:20;height:calc(var(--hh) + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) clamp(14px,3vw,28px) 0;background:var(--sf);box-shadow:0 2px 0 var(--or);display:flex;align-items:center;gap:14px;backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:1px;cursor:pointer;color:var(--tx);background:none;border:0;padding:0;transition:transform .2s var(--ease)}.brand:hover{transform:scale(1.02)}.brand b{color:var(--or)}
+.nav{display:flex;gap:4px;margin-left:auto;align-items:center}
+.nav button{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--mu);font:600 14px 'Sora',sans-serif;padding:9px 14px;border-radius:10px;cursor:pointer;transition:all .2s var(--ease)}
+.nav button:hover{color:var(--ort);background:rgba(255,106,0,.1);transform:translateY(-1px)}
+.nav button[aria-current=page]{background:var(--or);color:var(--onor);box-shadow:0 2px 8px rgba(255,106,0,.28)}
+.auth-btn{margin-left:6px;display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--or);background:var(--sf2);color:var(--ort);font:600 13px 'Sora',sans-serif;padding:8px 14px;border-radius:99px;cursor:pointer;transition:all .2s var(--ease);white-space:nowrap}
+.auth-btn:hover{background:var(--or);color:var(--onor);transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,106,0,.25)}
+.auth-btn.on{background:var(--dk);color:var(--dkt);border-color:var(--dk)}
 .wrap{flex:1;width:100%;max-width:1120px;margin:0 auto;padding:28px clamp(14px,3vw,24px) 56px}
-@media(max-width:760px){
- .nav{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:30;justify-content:space-around;gap:0;background:var(--sf);border-top:1px solid var(--bd);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
- .nav button{flex:1;flex-direction:column;gap:2px;font-size:11px;padding:6px 4px}
- .wrap{padding-bottom:100px}
+@media(max-width:860px){
+.nav{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:30;justify-content:space-around;gap:0;background:var(--sf);border-top:1px solid var(--bd);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+.nav button{flex:1;flex-direction:column;gap:2px;font-size:11px;padding:6px 4px}
+.auth-btn{margin-left:auto;font-size:12px;padding:6px 12px}
+.wrap{padding-bottom:100px}
 }
 
 /* botões */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:10px;padding:10px 18px;font:600 14px 'Sora',sans-serif;cursor:pointer;background:var(--or);color:var(--onor);box-shadow:0 3px 0 var(--ord);transition:transform .15s,box-shadow .15s,background .15s;white-space:nowrap}
-.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 0 var(--ord),0 8px 18px rgba(255,106,0,.3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:10px;padding:10px 18px;font:600 14px 'Sora',sans-serif;cursor:pointer;background:var(--or);color:var(--onor);box-shadow:0 3px 0 var(--ord);transition:transform .18s var(--ease),box-shadow .18s var(--ease),background .18s;white-space:nowrap}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 0 var(--ord),0 8px 18px rgba(255,106,0,.3)}
 .btn:active:not(:disabled){transform:translateY(2px);box-shadow:none}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn.g{background:transparent;color:var(--ort);box-shadow:inset 0 0 0 2px var(--or)}
 .btn.g:hover:not(:disabled){background:var(--or);color:var(--onor);box-shadow:inset 0 0 0 2px var(--or)}
 .btn.k{background:var(--dk);color:var(--dkt);box-shadow:0 3px 0 #000,inset 0 0 0 1px var(--bd)}
+.btn.ok{background:var(--ok);color:#fff;box-shadow:0 3px 0 #0c5630}
 .btn.s{padding:6px 12px;font-size:12px;border-radius:8px}
 .btn.lg{padding:14px 26px;font-size:16px;border-radius:12px}
 .ibtn{border:0;background:none;color:var(--mu);width:34px;height:34px;border-radius:8px;cursor:pointer;display:inline-grid;place-items:center;transition:.15s}
-.ibtn:hover{background:var(--erb);color:var(--er)}
+.ibtn:hover{background:var(--erb);color:var(--er);transform:scale(1.08)}
 .lnk{border:0;background:none;color:var(--ort);font:600 13px 'Sora',sans-serif;cursor:pointer;padding:4px 0;text-decoration:underline}
 
 /* títulos de página e secções */
@@ -67,17 +89,18 @@ button{font-family:inherit}
 
 /* chips e notas */
 .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--sf2);color:var(--mu);border:1px solid var(--bd);white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--sf2);color:var(--mu);border:1px solid var(--bd);white-space:nowrap;transition:transform .15s}
 .chip.ok{background:var(--okb);color:var(--ok);border-color:transparent}
 .chip.err{background:var(--erb);color:var(--er);border-color:transparent}
 .chip.warn{background:var(--wnb);color:var(--wn);border-color:transparent}
 .chip.or{background:rgba(255,106,0,.14);color:var(--ort);border-color:transparent}
-.note{background:rgba(255,106,0,.1);border-left:4px solid var(--or);padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px}
+.note{background:rgba(255,106,0,.1);border-left:4px solid var(--or);padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px;animation:scaleIn .25s var(--ease)}
 .note.ok{background:var(--okb);border-color:var(--ok)}
 .note.err{background:var(--erb);border-color:var(--er)}
+.note.warn{background:var(--wnb);border-color:var(--wn)}
 
 /* hero */
-.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center;background:linear-gradient(135deg,var(--dk) 55%,#4a2108);color:var(--dkt);border-radius:28px;padding:clamp(28px,5vw,56px);position:relative;overflow:hidden}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center;background:linear-gradient(135deg,var(--dk) 55%,#4a2108);color:var(--dkt);border-radius:28px;padding:clamp(28px,5vw,56px);position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(27,18,12,.22)}
 .hero:after{content:"";position:absolute;right:-90px;top:-90px;width:320px;height:320px;border-radius:50%;background:var(--or);opacity:.22;pointer-events:none}
 .hero>*{position:relative;z-index:1}
 .hero h1{font-size:clamp(30px,5vw,50px);font-weight:800;letter-spacing:-.02em}
@@ -88,7 +111,7 @@ button{font-family:inherit}
 .hero .btn.g:hover{background:rgba(255,243,232,.14);color:var(--dkt);box-shadow:inset 0 0 0 2px var(--dkt)}
 .trust{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:24px;font-size:13px;opacity:.85}
 .trust span{display:flex;align-items:center;gap:6px}
-.mock{background:var(--sf);color:var(--tx);border-radius:18px;padding:18px;box-shadow:0 24px 50px rgba(0,0,0,.4);transform:rotate(1.5deg)}
+.mock{background:var(--sf);color:var(--tx);border-radius:18px;padding:18px;box-shadow:0 24px 50px rgba(0,0,0,.4);transform:rotate(1.5deg);animation:floatSlow 6s ease-in-out infinite}
 .mock .mh{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:13px}
 .mock .ms{font-size:44px;font-weight:800;color:var(--ort);line-height:1;margin:12px 0 2px}.mock .ms small{font-size:15px;color:var(--mu);font-weight:600}
 .mock .mr{margin:9px 0;font-size:12px}.mock .mr div:first-child{display:flex;justify-content:space-between;color:var(--mu);margin-bottom:3px}
@@ -97,7 +120,8 @@ button{font-family:inherit}
 
 /* primeiros passos */
 .todo{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
-.todo li{display:flex;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}
+.todo li{display:flex;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);transition:transform .18s var(--ease),border-color .18s}
+.todo li:hover{transform:translateX(4px)}
 .todo li.next{border-color:var(--or);background:rgba(255,106,0,.07)}
 .todo .tk{flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;color:var(--mu)}
 .todo li.done .tk{background:var(--ok);border-color:var(--ok);color:#fff}
@@ -109,46 +133,49 @@ button{font-family:inherit}
 .step h3{font-size:16px;margin-bottom:4px}
 .band{background:var(--dk);color:var(--dkt);border-radius:24px;padding:clamp(26px,4vw,44px);text-align:center;border-top:4px solid var(--or)}
 .band h2{font-size:clamp(22px,3.4vw,30px)}.band p{opacity:.85;margin:10px auto 22px;max-width:52ch}
-.pbar{height:8px;border-radius:8px;background:var(--bd);overflow:hidden}.pbar i,.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--or),var(--or2));transition:width .6s}
+.pbar{height:8px;border-radius:8px;background:var(--bd);overflow:hidden}.pbar i,.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--or),var(--or2));transition:width .7s var(--ease);transform-origin:left;animation:barGrow .6s var(--ease)}
 .bar{height:8px;border-radius:8px;background:var(--bd);overflow:hidden}
+.bar.ok i{background:var(--ok)}
+.bar.err i{background:var(--er)}
+.bar.warn i{background:#e69500}
 
 /* formulários */
 label{font-size:12px;font-weight:600;color:var(--mu);display:block;margin:0 0 4px}
-input,textarea,select{width:100%;padding:10px 12px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:14px 'Sora',sans-serif;transition:.15s}
+input,textarea,select{width:100%;padding:10px 12px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:14px 'Sora',sans-serif;transition:border-color .18s,box-shadow .18s,transform .15s}
 input:focus,textarea:focus,select:focus{outline:0;border-color:var(--or);box-shadow:0 0 0 3px rgba(255,106,0,.2)}
 textarea{min-height:120px;resize:vertical;line-height:1.5}
 .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.row>.grow{flex:1;min-width:180px}
 .inl{display:flex;align-items:center;gap:6px;margin:0;font-size:12px;white-space:nowrap}
 .inl input{width:72px;padding:6px 8px}.inl select{width:auto;padding:6px 8px}
-.chk{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;color:var(--tx);font-weight:400}.chk input{width:auto}
+.chk{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;color:var(--tx);font-weight:400;cursor:pointer}.chk input{width:auto}
 
 /* drag and drop */
-.drop{border:2px dashed var(--or);border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;background:rgba(255,106,0,.05);transition:.15s;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ort)}
-.drop:hover{background:rgba(255,106,0,.12)}
+.drop{border:2px dashed var(--or);border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;background:rgba(255,106,0,.05);transition:all .2s var(--ease);display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ort)}
+.drop:hover{background:rgba(255,106,0,.12);transform:translateY(-2px)}
 .drop.over{background:rgba(255,106,0,.18);border-style:solid;transform:scale(1.01);box-shadow:0 0 0 5px rgba(255,106,0,.18)}
-.drop.busy{opacity:.7;pointer-events:none}
+.drop.busy{opacity:.7;pointer-events:none;animation:pulseSoft 1.2s infinite}
 .drop .dt{font-weight:700;color:var(--tx);font-size:15px}.drop .dh{font-size:13px;color:var(--mu)}
 .drop.compact{padding:16px;flex-direction:row;justify-content:center;gap:12px;flex-wrap:wrap}.drop.compact .dt{font-size:14px}
 .dbad{color:var(--er);font-size:13px;font-weight:600;width:100%}
 .files{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
-.file{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}
+.file{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);animation:scaleIn .22s var(--ease)}
 .file .fi{flex:1;min-width:0}.file b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file .pv{font-size:12px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file>.ico{color:var(--ort)}
 
-/* tabelas, estatísticas */
+/* tabelas, estatísticas e dashboard */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
 .stat{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:14px 16px}
 .stat b{display:block;font-size:28px;font-weight:800;color:var(--ort);line-height:1.1}.stat span{font-size:12px;color:var(--mu)}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px}
-.pill{padding:7px 16px;border-radius:99px;border:1.5px solid var(--or);color:var(--ort);background:transparent;font:600 13px 'Sora',sans-serif;cursor:pointer;transition:.15s}
-.pill:hover,.pill.on{background:var(--or);color:var(--onor)}
+.pill{padding:7px 16px;border-radius:99px;border:1.5px solid var(--or);color:var(--ort);background:transparent;font:600 13px 'Sora',sans-serif;cursor:pointer;transition:all .18s var(--ease)}
+.pill:hover,.pill.on{background:var(--or);color:var(--onor);transform:translateY(-1px)}
 .pill.add{border-style:dashed}
 .tw{overflow-x:auto;border:1px solid var(--bd);border-radius:12px;margin-top:14px}
 table{width:100%;border-collapse:collapse}
 th{background:var(--dk);color:var(--dkt);text-align:left;padding:10px 12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
-td{padding:6px 12px;border-top:1px solid var(--bd)}
+td{padding:6px 12px;border-top:1px solid var(--bd);transition:background .15s}
 tbody tr:hover td{background:rgba(255,106,0,.06)}
 .who{display:flex;align-items:center;gap:10px}
 .av{flex:0 0 auto;width:32px;height:32px;border-radius:50%;background:rgba(255,106,0,.18);color:var(--ort);display:grid;place-items:center;font-size:12px;font-weight:800}
@@ -157,14 +184,33 @@ tbody tr:hover td{background:rgba(255,106,0,.06)}
 .ta{text-align:right;width:50px}
 .empty{text-align:center;padding:36px 20px;color:var(--mu)}.empty .fic{margin:0 auto 12px;width:54px;height:54px}.empty h3{color:var(--tx);margin-bottom:4px}
 details>summary{cursor:pointer;list-style:none}details>summary::-webkit-details-marker{display:none}
-details.adv{margin-top:12px}details.adv>summary{font-size:13px;font-weight:600;color:var(--mu);display:flex;align-items:center;gap:6px}
-details.adv>summary:before{content:"▸";transition:.15s}details.adv[open]>summary:before{transform:rotate(90deg)}
-details.adv>summary:hover{color:var(--ort)}details.adv>div,details.adv>p,details.adv>textarea{margin-top:8px}
+details.adv{margin-top:12px}details.adv>summary{font-size:13px;font-weight:600;color:var(--mu);display:flex;align-items:center;gap:6px;transition:color .15s}
+details.adv>summary:before{content:"▸";transition:.2s var(--ease)}details.adv[open]>summary:before{transform:rotate(90deg)}
+details.adv>summary:hover{color:var(--ort)}details.adv>div,details.adv>p,details.adv>textarea{margin-top:8px;animation:fadeSlideUp .22s var(--ease)}
+
+/* Dashboard de Análise Estatística */
+.dash-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;margin-top:16px}
+@media(max-width:860px){.dash-grid{grid-template-columns:1fr}}
+.gap-list{display:grid;gap:10px;margin-top:12px}
+.gap-item{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);transition:transform .18s var(--ease)}
+.gap-item:hover{transform:translateX(3px)}
+.gap-item.crit{border-left:4px solid var(--er);background:var(--erb)}
+.gap-item.warn{border-left:4px solid var(--wn);background:var(--wnb)}
+.gap-item.ok{border-left:4px solid var(--ok);background:var(--okb)}
+.chart-rows{display:grid;gap:12px;margin-top:12px}
+.chart-row{display:grid;gap:4px}
+.chart-lbl{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}
+.histo{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:end;height:150px;padding:18px 8px 6px;border-bottom:2px solid var(--bd);margin-top:12px}
+.hcol{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.hbar{width:100%;max-width:54px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--or2),var(--or));transition:height .6s var(--ease);min-height:6px}
+.hbar.err{background:linear-gradient(180deg,#ff8a82,var(--er))}
+.hbar.ok{background:linear-gradient(180deg,#4cd08a,var(--ok))}
+.exp-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* correção */
 .tinfo .top2{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap;align-items:flex-start}
 .tinfo h2{font-size:22px;margin-bottom:8px}
-.perf{display:flex;gap:10px}.perf .stat{padding:8px 14px}.perf .stat b{font-size:20px}
+.perf{display:flex;gap:10px;flex-wrap:wrap}.perf .stat{padding:8px 14px}.perf .stat b{font-size:20px}
 .abar{position:sticky;top:calc(var(--hh) + env(safe-area-inset-top,0px) + 8px);z-index:10;background:var(--sf);border:1px solid var(--or);border-radius:16px;padding:12px 14px;margin-top:16px;box-shadow:var(--sh)}
 .abar .r1{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .abar .fld{flex:1;min-width:180px;max-width:340px}
@@ -172,7 +218,8 @@ details.adv>summary:hover{color:var(--ort)}details.adv>div,details.adv>p,details
 .tot{display:flex;align-items:center;gap:8px;line-height:1.2}.tot .mu{font-size:12px}
 .score{font-size:40px;font-weight:800;color:var(--ort);line-height:1}
 .qnav{display:flex;gap:6px;overflow-x:auto;padding-top:10px;margin-top:10px;border-top:1px solid var(--bd)}
-.qc{flex:0 0 auto;min-width:40px;padding:4px 10px;border-radius:8px;border:1.5px solid var(--bd);background:var(--bg);font:600 12px 'Sora',sans-serif;color:var(--mu);cursor:pointer}
+.qc{flex:0 0 auto;min-width:40px;padding:4px 10px;border-radius:8px;border:1.5px solid var(--bd);background:var(--bg);font:600 12px 'Sora',sans-serif;color:var(--mu);cursor:pointer;transition:.15s}
+.qc:hover{transform:translateY(-1px);border-color:var(--or)}
 .qc.ev{border-color:var(--or);color:var(--ort)}.qc.dn{background:var(--ok);border-color:var(--ok);color:#fff}
 .hint{margin-top:10px;font-size:13px}
 @media(max-width:760px){.abar{position:static}}
@@ -193,15 +240,22 @@ details.adv>summary:hover{color:var(--ort)}details.adv>div,details.adv>p,details
 .stmt.cl{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}@media(max-width:760px){.two{grid-template-columns:1fr}}
 .lh{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}.lh label{margin:0}.lh span{font-size:12px;color:var(--mu)}
-.res{margin-top:16px;padding:16px;border-radius:14px;background:var(--sf2);border:1px solid var(--bd)}
+.res{margin-top:16px;padding:16px;border-radius:14px;background:var(--sf2);border:1px solid var(--bd);animation:scaleIn .25s var(--ease)}
 .rtop{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.rtop .score{font-size:34px}.rtop .of{color:var(--mu);font-weight:600}
 .res p{margin-top:10px;font-size:13px}
 .grade{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:14px;padding-top:14px;border-top:1px dashed var(--bd)}.grade .grow{flex:1;min-width:200px}
 .params{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px 22px}
 .pl{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mu);margin-bottom:3px}
 .ll{font-size:13px;margin-top:4px;color:var(--mu)}
+
+/* Auth Dummy Page */
+.auth-wrap{max-width:460px;margin:28px auto;background:var(--sf);border:1px solid var(--bd);border-radius:22px;padding:32px;box-shadow:var(--sh);animation:scaleIn .35s var(--ease)}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);padding:4px;border-radius:12px;border:1px solid var(--bd);margin:18px 0}
+.auth-tabs button{border:0;background:none;padding:9px;border-radius:9px;font:600 13px 'Sora',sans-serif;color:var(--mu);cursor:pointer;transition:.2s}
+.auth-tabs button.on{background:var(--or);color:var(--onor);box-shadow:0 2px 8px rgba(255,106,0,.25)}
+
 footer{background:var(--dk);color:var(--dkt);text-align:center;padding:18px 18px 24px;font-size:13px;border-top:4px solid var(--or)}
-@media(max-width:760px){footer{padding-bottom:90px}}
+@media(max-width:860px){footer{padding-bottom:90px}}
 </style>
 </head>
 <body>
@@ -223,7 +277,7 @@ function usePersist(k,d){const[s,set]=useState(()=>ld(k,d));useEffect(()=>{const
 
 /* ===== Motor FALPD: extração de padrões + classificador logístico com aprendizagem online (sem LLM) ===== */
 const STOP=new Set('que uma uns umas dos das nos nas por para com como mas aos foi ser sao ele ela seu sua lhe mais ja tambem pelo pela isso este esta esse essa entre sobre'.split(' '));
-const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const tok=s=>(norm(s).match(/[a-z]{3,}/g)||[]).filter(w=>!STOP.has(w)).map(w=>w.slice(0,6));
 const tf=a=>{const m={};a.forEach(w=>m[w]=(m[w]||0)+1);return m};
 const cos=(a,b)=>{let d=0,x=0,y=0;for(const k in a){x+=a[k]*a[k];if(b[k])d+=a[k]*b[k]}for(const k in b)y+=b[k]*b[k];return x&&y?d/Math.sqrt(x*y):0};
@@ -233,14 +287,16 @@ const INF=['sugere','simboliza','revela','evidencia','transmite','remete','denun
 const CON=['porque','pois','portanto','logo','assim','contudo','no entanto','alem disso','por isso','deste modo','dado que','uma vez que','em suma','por outro lado'];
 const FN=['Semelhança com a resposta-modelo','Cobertura dos conceitos-chave','Expressões coincidentes (bigramas)','Alinhamento com o contexto da obra','Alinhamento com os critérios do domínio','Recursos expressivos','Extensão adequada','Interpretação do subentendido','Conectores / coesão','Diversidade lexical','Elementos essenciais presentes','Figura de estilo trocada','Semântica: o aluno diz o que o modelo diz','Semântica: o que o aluno diz está no modelo','Ortografia (dicionário)','Pontuação'];
 const W0={w:[1.6,1.8,1.2,.4,.3,.5,.8,.4,.4,.3,1.6,-.4,1.4,.6,.5,.5],b:-4.3,n:0,h:[]},WE={w:[.8,1,.5,.4,.3,.5,1.2,.4,.8,.8,1.6,-.4,.8,.4,1.2,1],b:-4.4,n:0,h:[]},MD0={EL:W0,ES:WE,GR:W0,LE:W0};
-const FIGN={metafor:'metáfora',comparac:'comparação',personific:'personificação',hiperbol:'hipérbole',ironi:'ironia',antites:'antítese',enumerac:'enumeração',gradac:'gradação',sinestes:'sinestesia',adjetivac:'adjetivação',aliterac:'aliteração',anafor:'anáfora',apostrof:'apóstrofe',eufemism:'eufemismo',retoric:'retórica',assindet:'assíndeto',polissindet:'polissíndeto'};
+const FIGN={metafor:'metáfora',comparac:'comparação',personific:'personificação',hiperbol:'hipérbole',ironi:'ironia',antites:'antítese',enumerac:'enumeração',gradac:'gradação',sinestes:'sinestesia',adjetivac:'adjetivação',aliterac:'aliteração',anafor:'anáfora',apostrof:'apóstrofe',eufemism:'eufemismo',paradox:'paradoxo',oximor:'oxímoro',simbol:'símbolo',alegor:'alegoria',caricatur:'caricatura',satir:'sátira',assindet:'assíndeto',polissindet:'polissíndeto',retoric:'interrogação retórica'};
 const FIG=Object.keys(FIGN),figs=t=>{const n=norm(t);return FIG.filter(f=>n.includes(f))};
-/* elementos essenciais: definidos pelo professor (um por linha; sinónimos com |; peso com ::) ou, por defeito, as figuras de estilo nomeadas na resposta-modelo */
+
+/* elementos essenciais: definidos pelo professor ou, por defeito, as figuras de estilo nomeadas na resposta-modelo */
 const essOf=q=>{const L=(q.chave||'').split('\n').map(x=>x.trim()).filter(Boolean);return L.length?L.map(l=>{const[a,w]=l.split('::');return{lab:a.trim(),alts:a.split('|').map(x=>norm(x).trim()).filter(Boolean),w:+w||1}}):figs(q.model||'').map(f=>({lab:FIGN[f],alts:[f],w:2}))};
 const sig=z=>1/(1+Math.exp(-z));
 const pred=(m,x)=>sig(m.b+x.reduce((s,v,i)=>s+v*m.w[i],0));
 const hits=(a,l)=>l.filter(w=>a.includes(w)).length;
 const bg=a=>a.slice(1).map((w,i)=>a[i]+'_'+w);
+
 function feats(ans,ref,ctx,crit,ess,sem,lg,rng){
  const ta=tok(ans),tr=tok(ref);if(!ta.length)return FN.map(()=>0);
  const sa=new Set(ta),sr=new Set(tr),na=norm(ans),ba=new Set(bg(ta)),br=bg(tr);
@@ -251,18 +307,20 @@ function feats(ans,ref,ctx,crit,ess,sem,lg,rng){
  const L=[cos(tf(ta),tf(tr)),sr.size?[...sr].filter(w=>sa.has(w)).length/sr.size:0,br.length?br.filter(b=>ba.has(b)).length/br.length:0,ov(topSet(ctx,400)),ov(topSet(crit,250)),Math.min(hits(na,RES),3)/3,(rng?(nw<rng[0]?nw/rng[0]:nw>rng[1]?rng[1]/nw:1):Math.min(r,1/r)),Math.min(hits(na,INF),3)/3,Math.min(hits(na,CON),4)/4,Math.min(new Set(ws).size/nw*1.2,1),sw?(c/sw-.5)*2:0,wrong];
  L.push(sem?sem.cov:L[0],sem?sem.prec:L[1],lg&&lg.sp!=null?lg.sp:.75,lg?lg.pu:.75);return L;
 }
-/* alvo contínuo t em [0,1] = nota do professor / cotação; repete sobre o histórico (replay) para aprender com poucos exemplos */
+
 const train=(m,x,t)=>{const h=[...(m.h||[]),[x,t]].slice(-200);let w=[...m.w],b=m.b;for(let e=0;e<6;e++)for(const[xi,ti]of h){const er=ti-sig(b+xi.reduce((s,v,i)=>s+v*w[i],0));w=w.map((v,i)=>v+.12*(er*xi[i]-.01*v));b+=.12*er}return{w,b,n:m.n+1,h}};
 const DOMN={EL:'Educação literária',ES:'Escrita',GR:'Gramática',LE:'Leitura'};
 const detDom=t=>{const n=norm(t);return/\b(escreva|redija|elabore|produza)\b/.test(n)&&/(palavras|texto|apreciacao|opiniao|ensaio|artigo)/.test(n)?'ES':/(oracao|subordinada|coordenada|funcao sintatica|complemento|classe de palavras|valor modal|tempo verbal|pronome|determinante|sujeito|predicativo|deixis)/.test(n)?'GR':'EL'};
 const qdom=q=>q.dom||detDom(q.text);
+
 /* critérios: só as páginas de Português 12.º (exclui PLNM e outras disciplinas) e só o domínio da questão */
 const PTR=/P\s*O\s*R\s*T\s*U\s*G\s*U[EÊ]\s*S\s*[-–]?\s*12/i,pgs=t=>t.split(/[\f\n]/),isPT=g=>PTR.test(g)&&!/PLNM/i.test(g);
 const critPT=t=>{const p=pgs(t).filter(isPT);return p.length?p.join(' '):t};
 const ptPages=t=>[pgs(t).filter(isPT).length,pgs(t).filter(Boolean).length];
 const HD=[['LE',/Leitura\s*:?\s*20\s*%/i],['EL',/Educa[cç][aã]o\s+liter[aá]ria\s*:?\s*20\s*%/i],['ES',/Escrita\s*:?\s*20\s*%/i],['GR',/Gram[aá]tica\s*:?\s*10\s*%/i]];
 const critDom=(t,d)=>{const s=critPT(t),p=HD.map(([k,r])=>[k,s.search(r)]).filter(x=>x[1]>=0).sort((a,b)=>a[1]-b[1]),i=p.findIndex(x=>x[0]===d);return i<0?s:s.slice(p[i][1],i+1<p.length?p[i+1][1]:s.length)};
-/* ===== Análise semântica local: embeddings de frases (rede neuronal pequena, corre no navegador, não é um LLM) ===== */
+
+/* ===== Análise semântica local ===== */
 const EMB={ext:null};
 async function loadEmb(cb){if(EMB.ext)return;const T=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.1.2');EMB.ext=await T.pipeline('feature-extraction','Xenova/paraphrase-multilingual-MiniLM-L12-v2',{dtype:'q8',progress_callback:p=>{if(p.status==='progress'&&cb)cb('A descarregar o modelo (só na primeira vez)… '+Math.round(p.progress||0)+'%')}})}
 const sents=t=>t.replace(/\s+/g,' ').split(/(?<=[.!?;:])\s+/).map(x=>x.trim()).filter(x=>x.length>8);
@@ -272,11 +330,11 @@ async function semOf(ans,ref,ess){
  const A=sents(ans),R=sents(ref);if(!A.length||!R.length)return null;
  const E=await embed([...A,...R]),ea=E.slice(0,A.length),er=E.slice(A.length),sc=v=>Math.max(0,Math.min(1,(v-.25)/.5));
  const cov=er.reduce((s,r)=>s+sc(Math.max(...ea.map(a=>dot(a,r)))),0)/er.length,prec=ea.reduce((s,a)=>s+sc(Math.max(...er.map(r=>dot(a,r)))),0)/ea.length;
- /* elementos escritos como frase (não figuras de estilo): aceita sinónimos/paráfrases por proximidade de sentido */
  const its=(ess||[]).filter(i=>!i.alts.some(z=>FIG.includes(z))&&!i.lab.includes('|')&&i.lab.includes(' ')),hit={};
  if(its.length){const Lb=await embed(its.map(i=>i.lab));its.forEach((it,k)=>{hit[it.lab]=Math.max(...ea.map(a=>dot(a,Lb[k])))>=.5})}
  return{cov,prec,hit};
 }
+
 /* ===== Dicionário (ortografia) e regras de pontuação ===== */
 const DICT={sp:null};
 async function loadDict(cb){
@@ -300,7 +358,7 @@ function spell(text,known){
  }
  return out;
 }
-const VB='é|são|foi|era|eram|tem|têm|há|critica|ridiculariza|mostra|revela|representa|simboliza|evidencia|retrata|sugere|demonstra|expressa|transmite|denuncia|ilustra|reflete|reflecte|caracteriza|refere|apresenta|utiliza|usa|permite|contribui|afirma|diz|considera|indica|parece|acrescenta|exprime|salienta|sublinha';
+const VB='é|são|foi|era|eram|tem|têm|há|critica|ridiculariza|mostra|revela|representa|simboliza|evidencia|retrata|sugere|demonstra|expressa|transmite|denuncia|ilustra|reflete|reflecte|caracteriza|refere|apresenta|utiliza|usa|permite|contribui|afirma|diz|considera|indica|parece|acredita|pretende|procura|faz|dá|leva|torna|provoca|cria|produz|estabelece|opõe|contrasta|associa|relaciona|destaca|sublinha|evoca|invoca|exprime|traduz|significa|implica|pressupõe|confirma|reforça|acentua|intensifica|descreve|narra|relata|explica|justifica|comprova';
 const CN='Contudo|Todavia|Porém|Portanto|Assim sendo|Em suma|Por isso|No entanto|Além disso|Por outro lado|Em primeiro lugar|Em segundo lugar|Em conclusão|Deste modo|Ou seja|Por fim|Em síntese|Com efeito|Por conseguinte';
 function pontos(t){
  const T=t.replace(/\s+/g,' ').trim(),out=[];if(!T)return out;let m;
@@ -326,41 +384,381 @@ function lingua(a,known){
 const rangeOf=t=>{const n=norm(t),m=n.match(/(\d{2,4})\s*(?:a|e|-|–)\s*(\d{2,4})\s*palavras/);if(m)return[+m[1],+m[2]];const k=n.match(/(?:minimo de|pelo menos|no minimo)\s*(\d{2,4})\s*palavras/);return k?[+k[1],Math.round(+k[1]*1.6)]:null};
 async function pdfText(f){const d=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let t='';for(let i=1;i<=d.numPages;i++){const c=await(await d.getPage(i)).getTextContent();let s='',ex=null,y=0;for(const it of c.items){const x=it.transform[4],yy=it.transform[5];if(s&&ex!==null&&Math.abs(yy-y)<3&&x-ex<1.5)s+=it.str;else s+=(s?' ':'')+it.str;ex=x+(it.width||0);y=yy}t+=s+'\f'}return t}
 
-/* ===== Estrutura do teste e segunda opinião ===== */
+/* ===== Estrutura do teste + Identificação automática de Respostas-Modelo + Batch Upload ===== */
 const ctxOf=(t,all)=>[...t.ctx,...(t.reuse?all.filter(o=>o.id!==t.id&&norm(o.author)===norm(t.author)).flatMap(o=>o.ctx):[])].map(d=>d.text).join(' ');
-const gn=g=>g.m?g.p/g.m*20:0;
+const gn=g=>g&&g.m?g.p/g.m*20:0;
+
+/* Extrai mapa de respostas-modelo de um bloco de texto de critérios/soluções */
+function extractModelMap(solText){
+ const map={};
+ if(!solText||!solText.trim())return map;
+ const T=solText.replace(/\s+/g,' ').trim();
+ const re=/(?:^|\s)(?:Quest[aã]o\s+|Item\s+|Pergunta\s+)?(\d{1,2}(?:\.\d{1,2})?)[.):\-–]\s+/gi,mk=[];let r;
+ while((r=re.exec(T)))mk.push({i:r.index,l:r[1],e:re.lastIndex});
+ mk.forEach((k,idx)=>{
+  let body=T.slice(k.e,idx+1<mk.length?mk[idx+1].i:T.length).trim();
+  body=body.replace(/^(?:\d+\s*(?:pontos|pts)\s*[-–:.]?\s*)/i,'').trim();
+  if(body.length>8&&!map[k.l])map[k.l]=body;
+ });
+ return map;
+}
+
 function parseTest(raw){
- const T=raw.replace(/\s+/g,' ').trim();
- const heads=T.split(/(?=\bGRUPO\s+[IVX]+\b)/i).filter(p=>/^GRUPO\s+[IVX]+/i.test(p)&&p.length>60);
+ const full=raw.replace(/\s+/g,' ').trim();
+ /* Deteta se o PDF/texto possui uma secção final de Critérios Específicos / Respostas-Modelo / Soluções */
+ const solSplit=full.split(/(?=\b(?:CRIT[EÉ]RIOS\s+ESPEC[IÍ]FICOS(?:\s+DE\s+CLASSIFICA[CÇ][AÃ]O)?|PROPOSTA\s+DE\s+(?:RESOLU[CÇ][AÃ]O|CORRE[CÇ][AÃ]O)|RESPOSTAS?[- ]MODELO|CEN[AÁ]RIOS?\s+DE\s+RESPOSTA|SOLU[CÇ][OÕ]ES\s+DO\s+TESTE|CHAVE\s+DE\s+CORRE[CÇ][AÃ]O)\b)/i);
+ const T=solSplit[0].trim();
+ const solBlock=solSplit.length>1?solSplit.slice(1).join(' '):'';
+ const solMap=extractModelMap(solBlock);
+
+ const heads=T.split(/(?=\bGRUPO\s+[IVX]+\b)/i).filter(p=>/^GRUPO\s+[IVX]+/i.test(p)&&p.length>40);
  let n=0;
  return(heads.length?heads:[T]).map((p,gi)=>{
- const hm=p.match(/^GRUPO\s+[IVX]+/i),body=hm?p.slice(hm[0].length):p;
- const re=/(?:^|\s)(\d{1,2}(?:\.\d{1,2})?)[.)]\s+(?=[A-ZÀ-Ú«“"])/g,mk=[];let r;
- while((r=re.exec(body)))mk.push({i:r.index,l:r[1],e:re.lastIndex});
- const mq=(l,tx)=>{const pm=tx.match(/(\d{1,3})\s*(?:pontos|pts)/i);return{id:'q'+(++n),label:l,text:tx,max:pm?+pm[1]:10,model:'',dom:detDom(tx)}};
- /* grupo sem questões numeradas (ex.: Grupo III de escrita) = uma única questão com o texto todo */
- const qs=mk.length?mk.map((k,i)=>mq(k.l,body.slice(k.e,i+1<mk.length?mk[i+1].i:body.length).trim())):[mq('1',body.trim())];
- return{id:'g'+gi,name:hm?hm[0].replace(/\s+/,' ').toUpperCase():'Teste',intro:mk.length?body.slice(0,mk[0].i).trim():'',qs};
+  const hm=p.match(/^GRUPO\s+[IVX]+/i),body=hm?p.slice(hm[0].length):p;
+  const re=/(?:^|\s)(\d{1,2}(?:\.\d{1,2})?)[.)]\s+(?=[A-ZÀ-Ú«“"])/g,mk=[];let r;
+  while((r=re.exec(body)))mk.push({i:r.index,l:r[1],e:re.lastIndex});
+  const mq=(l,tx)=>{
+   const pm=tx.match(/(\d{1,3})\s*(?:pontos|pts)/i);
+   /* Verifica se a própria pergunta tem Resposta-modelo / Cenário de resposta inline */
+   let cleanTx=tx,inlineMod='';
+   const im=tx.match(/^(.*?)\b(?:Resposta[- ]modelo|Cen[aá]rio\s+de\s+resposta|Proposta\s+de\s+resposta|Crit[eé]rio\s+de\s+resposta|Solu[cç][aã]o|Resposta\s+esperada)\s*[:\-–]\s*([\s\S]{10,})$/i);
+   if(im){cleanTx=im[1].trim();inlineMod=im[2].trim()}
+   const model=inlineMod||solMap[l]||'';
+   return{id:'q'+(++n),label:l,text:cleanTx,max:pm?+pm[1]:10,model,dom:detDom(cleanTx)};
+  };
+  const qs=mk.length?mk.map((k,i)=>mq(k.l,body.slice(k.e,i+1<mk.length?mk[i+1].i:body.length).trim())):[mq('1',body.trim())];
+  return{id:'g'+gi,name:hm?hm[0].replace(/\s+/,' ').toUpperCase():'Teste',intro:mk.length?body.slice(0,mk[0].i).trim():'',qs};
  });
 }
-/* Segunda opinião: o LLM recebe todo o contexto mas só devolve uma sugestão de nota; a decisão é da FALPD e do professor */
+
+/* Separa as respostas de um aluno por número de questão (ex.: 1.1, 1.2, 2.1) */
+function splitStudentAnswers(rawText,AQ){
+ const res={};
+ if(!rawText||!rawText.trim())return res;
+ const T=rawText.replace(/\s+/g,' ').trim();
+ /* Procura marcadores das questões do teste */
+ const labels=AQ.map(({q})=>({id:q.id,label:q.label,re:new RegExp('(?:^|\\s)(?:Quest[aã]o\\s+|Pergunta\\s+|Item\\s+|Grupo\\s+[IVX]+\\s*[-–.]?\\s*)?'+q.label.replace('.','\\.')+'\\s*[.):\\-–]\\s+','i')}));
+ const found=[];
+ labels.forEach(lb=>{const m=lb.re.exec(T);if(m)found.push({id:lb.id,label:lb.label,i:m.index,e:m.index+m[0].length})});
+ found.sort((a,b)=>a.i-b.i);
+ if(found.length){
+  found.forEach((f,idx)=>{
+   const slice=T.slice(f.e,idx+1<found.length?found[idx+1].i:T.length).trim();
+   if(slice)res[f.id]=slice;
+  });
+ }else if(AQ.length===1){
+  res[AQ[0].q.id]=T;
+ }else{
+  /* fallback por marcadores genéricos 1.1, 1.2... */
+  const gen=/(?:^|\s)(\d{1,2}(?:\.\d{1,2})?)[.):\-–]\s+/g,mk=[];let r;
+  while((r=gen.exec(T)))mk.push({l:r[1],i:r.index,e:gen.lastIndex});
+  mk.forEach((k,idx)=>{
+   const qMatch=AQ.find(({q})=>q.label===k.l);
+   if(qMatch){res[qMatch.q.id]=T.slice(k.e,idx+1<mk.length?mk[idx+1].i:T.length).trim()}
+  });
+ }
+ return res;
+}
+
+/* Processa múltiplos ficheiros ou páginas para Importação em Lote (Batch Upload) */
+function parseBatchFiles(fileItems,students,AQ){
+ const entries=[];
+ fileItems.forEach(item=>{
+  /* Verifica se um único PDF tem vários alunos separados por "Aluno:" / "Nome:" ou páginas */
+  const blocks=item.text.split(/(?=(?:^|\f|\n)\s*(?:Aluno|Nome(?:\s+do\s+aluno)?|Teste\s+de)\s*[:\-–]\s*[^\n\f]{3,50})/i).map(x=>x.trim()).filter(Boolean);
+  const chunks=blocks.length>1?blocks:[item.text];
+  chunks.forEach((chunk,ci)=>{
+   const head=norm(item.name+' '+chunk.slice(0,350));
+   let matchedStudent=students.find(s=>{
+    const sn=norm(s.name);
+    if(!sn)return false;
+    if(head.includes(sn))return true;
+    const parts=sn.split(/\s+/).filter(w=>w.length>2);
+    return parts.length>=2&&parts.every(p=>head.includes(p));
+   });
+   if(!matchedStudent&&students.length&&chunks.length===1&&fileItems.length===1){
+    matchedStudent=students[0];
+   }
+   const qMap=splitStudentAnswers(chunk,AQ);
+   entries.push({
+    key:item.name+'#'+ci,
+    fileName:chunks.length>1?`${item.name} (Secção ${ci+1})`:item.name,
+    studentId:matchedStudent?String(matchedStudent.id):(students[0]?String(students[0].id):''),
+    qMap,
+    raw:chunk,
+    isScan:chunk.replace(/\s+/g,'').length<30
+   });
+  });
+ });
+ return entries;
+}
+
+/* Segunda opinião LLM */
 async function opinion(c,{crit,paper,ctx,intro,q,ans,ess}){
  const prompt=`És um segundo avaliador de Português (12.º ano, Portugal). Dás apenas uma OPINIÃO: a decisão final é de outro sistema e do professor.\n\nCRITÉRIOS (domínio avaliado):\n${crit.slice(0,3500)}\n\nTESTE:\n${paper.slice(0,6000)}\n\nCONTEXTO (obras do autor):\n${ctx.slice(0,6000)}\n\nTEXTO DO GRUPO:\n${intro.slice(0,2500)}\n\nQUESTÃO (${q.max} pontos): ${q.text}\n\nRESPOSTA-MODELO:\n${q.model}\n\n${ess?'ELEMENTOS ESSENCIAIS (definidos pelo professor): '+ess+'. Se o aluno nomear uma figura de estilo diferente da correta, não lhe dês a nota do elemento.\n\n':''}RESPOSTA DO ALUNO:\n${ans}\n\nDevolve APENAS JSON: {"nota": número entre 0 e ${q.max} em passos de 0.5, "justificacao": "2 a 3 frases", "elementos": [{"nome": "...", "presente": true ou false}]}. Em "elementos" avalia, um a um, os elementos essenciais indicados acima (ou, se não houver, 2 a 4 elementos que a resposta-modelo exige); "presente" só é true se o aluno os afirma corretamente, sem os confundir com outro.`;
  let txt;
  if(c.prov==='claude'){
- const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':c.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:c.model||'claude-sonnet-5-5',max_tokens:500,messages:[{role:'user',content:prompt}]})});
- const d=await r.json();if(!r.ok)throw new Error((d.error&&d.error.message)||r.status);txt=d.content[0].text;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':c.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:c.model||'claude-sonnet-4-5',max_tokens:500,messages:[{role:'user',content:prompt}]})});
+  const d=await r.json();if(!r.ok)throw new Error((d.error&&d.error.message)||r.status);txt=d.content[0].text;
  }else{
- const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+(c.model||'gemini-flash-latest')+':generateContent?key='+encodeURIComponent(c.key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.2,responseMimeType:'application/json'}})});
- const d=await r.json();if(!r.ok)throw new Error((d.error&&d.error.message)||r.status);txt=d.candidates[0].content.parts[0].text;
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+(c.model||'gemini-flash-latest')+':generateContent?key='+encodeURIComponent(c.key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.2,responseMimeType:'application/json'}})});
+  const d=await r.json();if(!r.ok)throw new Error((d.error&&d.error.message)||r.status);txt=d.candidates[0].content.parts[0].text;
  }
  const j=JSON.parse(txt.match(/\{[\s\S]*\}/)[0]);
  return{nota:Math.max(0,Math.min(q.max,Math.round(+j.nota*2)/2)),just:String(j.justificacao||''),el:Array.isArray(j.elementos)?j.elementos.filter(z=>z&&z.nome).map(z=>({nome:String(z.nome),presente:z.presente===true})):[]};
 }
 
+/* ===== Cálculo de Estatísticas da Turma & Exportação (Excel / CSV / PDF) ===== */
+function computeClassAnalytics(c,tests,m,crit){
+ const cTests=tests.filter(t=>t.classId===c.id);
+ const sts=c.students||[];
+ const qStats=[];
+ const domTotals={EL:{s:0,m:0,f:0,t:0},LE:{s:0,m:0,f:0,t:0},GR:{s:0,m:0,f:0,t:0},ES:{s:0,m:0,f:0,t:0}};
+ const skillFails={fig:0,figTot:0,ess:0,essTot:0,sub:0,subTot:0,ort:0,ortTot:0};
+ const gaps=[];
+
+ cTests.forEach(t=>{
+  const AQ=(t.groups||[]).flatMap(g=>g.qs.map(q=>({g,q})));
+  AQ.forEach(({g,q})=>{
+   const dom=qdom(q),ess=essOf(q),hasFig=figs(q.model||'').length>0||ess.length>0||/recurso|figura|expressiv|estil/i.test(q.text);
+   let evalCount=0,failCount=0,sumPct=0,figFailCount=0;
+   sts.forEach(s=>{
+    const sid=String(s.id);
+    const gEntry=(t.grades||{})[sid];
+    const savedQ=gEntry&&gEntry.qs&&gEntry.qs[q.id];
+    const rawAns=((t.answers||{})[sid]||{})[q.id]||'';
+    let pct=null,failedEss=false;
+    if(savedQ){
+     pct=q.max?savedQ.p/q.max:0;
+     failedEss=savedQ.wrong>0||(savedQ.es&&savedQ.es.some(e=>!e.hit));
+    }else if(rawAns.trim()&&q.model&&q.model.trim()){
+     const x=feats(rawAns,q.model,'',critDom(crit||'',dom),ess,null,null,rangeOf(q.text));
+     pct=pred(m[dom]||W0,x);
+     const na=norm(rawAns);
+     failedEss=x[11]>0||(ess.length>0&&ess.some(it=>!it.alts.some(z=>na.includes(z))));
+     if(x[7]<.35)skillFails.sub++;
+     skillFails.subTot++;
+    }
+    if(pct!==null){
+     evalCount++;
+     sumPct+=pct;
+     if(pct<.5)failCount++;
+     if(failedEss||(hasFig&&pct<.5))figFailCount++;
+     domTotals[dom].s+=pct;
+     domTotals[dom].m+=1;
+     if(pct<.5)domTotals[dom].f+=1;
+     domTotals[dom].t+=1;
+     if(hasFig){skillFails.figTot++;if(pct<.5||failedEss)skillFails.fig++}
+     if(ess.length){skillFails.essTot++;if(failedEss)skillFails.ess++}
+    }
+   });
+   if(evalCount>0){
+    const failRate=Math.round(failCount/evalCount*100);
+    const figFailRate=Math.round(figFailCount/evalCount*100);
+    const avgPct=Math.round(sumPct/evalCount*100);
+    const topic=hasFig?'recursos expressivos / figuras de estilo':dom==='GR'?'gramática':dom==='ES'?'produção escrita':'interpretação literária';
+    qStats.push({id:t.id+'_'+q.id,testName:t.name,groupName:g.name,label:q.label,dom,topic,hasFig,evalCount,failRate,figFailRate,avgPct,max:q.max});
+    if(failRate>=50||figFailRate>=50){
+     const rate=Math.max(failRate,figFailRate);
+     gaps.push({
+      rate,
+      sev:rate>=70?'crit':'warn',
+      msg:`${rate}% da turma falhou a pergunta de ${topic} do ${g.name} (Questão ${q.label} · ${t.name})`,
+      rec:hasFig?`Preparar revisão sobre ${ess.map(e=>e.lab).join(', ')||'identificação e valor expressivo das figuras de estilo'}.`:`Reforçar exercícios de ${DOMN[dom].toLowerCase()} e estruturação da resposta.`
+     });
+    }
+   }
+  });
+ });
+
+ /* Notas finais dos alunos (0-20) */
+ const studentRows=sts.map((s,idx)=>{
+  const sid=String(s.id);
+  let finalNota=s.nota!=null&&s.nota!==''?+s.nota:null;
+  if(finalNota===null){
+   for(let i=cTests.length-1;i>=0;i--){
+    const g=(cTests[i].grades||{})[sid];
+    if(g&&g.m){finalNota=+gn(g).toFixed(1);break}
+   }
+  }
+  return{num:idx+1,id:s.id,name:s.name,nota:finalNota,round:finalNota!==null?Math.round(finalNota):null};
+ });
+ const validGrades=studentRows.filter(r=>r.nota!==null);
+ const avgClass=validGrades.length?(validGrades.reduce((a,b)=>a+b.nota,0)/validGrades.length):null;
+ const passCount=validGrades.filter(r=>r.nota>=9.5).length;
+ const failStudents=validGrades.length-passCount;
+ if(validGrades.length>0&&failStudents/validGrades.length>=.4&&!gaps.length){
+  const r=Math.round(failStudents/validGrades.length*100);
+  gaps.push({rate:r,sev:r>=60?'crit':'warn',msg:`${r}% da turma obteve classificação inferior a 9,5 valores na pauta global`,rec:'Agendar aula de recuperação e revisão dos conteúdos essenciais.'});
+ }
+ gaps.sort((a,b)=>b.rate-a.rate);
+
+ /* Distribuição em 4 escalões */
+ const dist=[
+  {lab:'0 – 9,4',sub:'Insuficiente',cnt:validGrades.filter(r=>r.nota<9.5).length,cls:'err'},
+  {lab:'9,5 – 13,4',sub:'Suficiente',cnt:validGrades.filter(r=>r.nota>=9.5&&r.nota<13.5).length,cls:''},
+  {lab:'13,5 – 16,4',sub:'Bom',cnt:validGrades.filter(r=>r.nota>=13.5&&r.nota<16.5).length,cls:''},
+  {lab:'16,5 – 20',sub:'Muito Bom',cnt:validGrades.filter(r=>r.nota>=16.5).length,cls:'ok'}
+ ];
+
+ return{cTests,qStats,domTotals,gaps,studentRows,validGrades,avgClass,passCount,dist};
+}
+
+function downloadBlob(content,filename,mime){
+ const blob=new Blob([content],{type:mime});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;a.download=filename;document.body.appendChild(a);a.click();
+ setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},200);
+}
+
+/* Exportação CSV (compatível com Inovar / GIAE / Excel PT) */
+function exportClassCSV(c,an){
+ const header=['Numero','ID_Aluno','Nome_do_Aluno','Nota_0_20','Nota_Pauta_Inteira','Situacao','Turma','Data_Exportacao'];
+ const date=new Date().toLocaleDateString('pt-PT');
+ const rows=an.studentRows.map(r=>[
+  r.num,
+  r.id,
+  `"${String(r.name).replace(/"/g,'""')}"`,
+  r.nota!==null?r.nota.toFixed(1).replace('.',','):'',
+  r.round!==null?r.round:'',
+  r.nota===null?'Sem avaliação':r.nota>=9.5?'Aprovado':'Em risco (< 9,5)',
+  `"${c.name}"`,
+  date
+ ].join(';'));
+ const csv='\uFEFF'+header.join(';')+'\r\n'+rows.join('\r\n');
+ downloadBlob(csv,`Pauta_${c.name.replace(/\s+/g,'_')}_Inovar_GIAE.csv`,'text/csv;charset=utf-8');
+}
+
+/* Exportação Excel Bonito (.xls com estilos, cores, pauta detalhada e resumo) */
+function exportClassExcel(c,an,selectedTest){
+ const date=new Date().toLocaleDateString('pt-PT');
+ const t=selectedTest||an.cTests[an.cTests.length-1]||null;
+ const AQ=t?(t.groups||[]).flatMap(g=>g.qs):[];
+ const avgTxt=an.avgClass!==null?an.avgClass.toFixed(1).replace('.',','):'—';
+ const passPct=an.validGrades.length?Math.round(an.passCount/an.validGrades.length*100)+'%':'—';
+
+ const qHeaders=AQ.map(q=>`<th style="background:#2a1a10;color:#fff3e8;padding:8px 10px;border:1px solid #d9c3b0;text-align:center">Q. ${q.label}<br><span style="font-size:10px;color:#ff8c3a">(${q.max} pts)</span></th>`).join('');
+
+ const bodyRows=an.studentRows.map((r,i)=>{
+  const sid=String(r.id);
+  const bg=i%2===0?'#ffffff':'#fffaf5';
+  const gradeColor=r.nota===null?'#7a6555':r.nota<9.5?'#c62d26':r.nota>=14?'#14804a':'#2a1a10';
+  const gradeBg=r.nota===null?bg:r.nota<9.5?'#fdecea':r.nota>=14?'#e8f7ee':bg;
+  const qCells=AQ.map(q=>{
+   const gEntry=t&&(t.grades||{})[sid];
+   const qScore=gEntry&&gEntry.qs&&gEntry.qs[q.id]?gEntry.qs[q.id].p:null;
+   return `<td style="background:${bg};padding:7px 10px;border:1px solid #ead8c8;text-align:center">${qScore!==null?String(qScore).replace('.',','):'—'}</td>`;
+  }).join('');
+  return `<tr>
+   <td style="background:${bg};padding:7px 10px;border:1px solid #ead8c8;text-align:center;font-weight:bold">${r.num}</td>
+   <td style="background:${bg};padding:7px 12px;border:1px solid #ead8c8;font-weight:600">${r.name}</td>
+   ${qCells}
+   <td style="background:${gradeBg};color:${gradeColor};padding:7px 10px;border:1px solid #ead8c8;text-align:center;font-weight:bold;font-size:14px">${r.nota!==null?r.nota.toFixed(1).replace('.',','):'—'}</td>
+   <td style="background:${gradeBg};color:${gradeColor};padding:7px 10px;border:1px solid #ead8c8;text-align:center;font-weight:bold">${r.round!==null?r.round:'—'}</td>
+   <td style="background:${bg};color:${gradeColor};padding:7px 10px;border:1px solid #ead8c8;text-align:center;font-weight:600">${r.nota===null?'Pendente':r.nota>=9.5?'Positiva':'Negativa'}</td>
+  </tr>`;
+ }).join('');
+
+ const gapsRows=an.gaps.length?an.gaps.map(g=>`<tr><td colspan="${5+AQ.length}" style="background:#fff4ea;color:#8a5200;padding:6px 12px;border:1px solid #f3dfcf">• <b>[${g.rate}% falha]</b> ${g.msg} — <i>${g.rec}</i></td></tr>`).join(''):'';
+
+ const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+ <head><meta charset="utf-8"><style>body{font-family:Calibri,Arial,sans-serif;font-size:12px;color:#2a1a10}table{border-collapse:collapse}</style></head>
+ <body>
+  <table>
+   <tr><td colspan="${5+AQ.length}" style="background:#1b120c;color:#fff3e8;font-size:18px;font-weight:bold;padding:14px 16px;border-bottom:4px solid #ff6a00">FALPD — Relatório Consolidado de Avaliação (Inovar / GIAE)</td></tr>
+   <tr><td colspan="${5+AQ.length}" style="background:#fff4ea;padding:8px 16px;border:1px solid #ead8c8"><b>Turma:</b> ${c.name} &nbsp;|&nbsp; <b>Teste:</b> ${t?t.name:'Média Global'} &nbsp;|&nbsp; <b>Data:</b> ${date} &nbsp;|&nbsp; <b>Média da Turma:</b> ${avgTxt} / 20 &nbsp;|&nbsp; <b>Aprovação:</b> ${passPct}</td></tr>
+   <tr><td colspan="${5+AQ.length}" style="height:10px"></td></tr>
+   <thead>
+    <tr>
+     <th style="background:#ff6a00;color:#1b120c;padding:9px 10px;border:1px solid #c24e00;text-align:center">N.º</th>
+     <th style="background:#ff6a00;color:#1b120c;padding:9px 12px;border:1px solid #c24e00;text-align:left">Nome do Aluno</th>
+     ${qHeaders}
+     <th style="background:#ff6a00;color:#1b120c;padding:9px 10px;border:1px solid #c24e00;text-align:center">Nota (0–20)</th>
+     <th style="background:#ff6a00;color:#1b120c;padding:9px 10px;border:1px solid #c24e00;text-align:center">Pauta (Inteira)</th>
+     <th style="background:#ff6a00;color:#1b120c;padding:9px 10px;border:1px solid #c24e00;text-align:center">Situação</th>
+    </tr>
+   </thead>
+   <tbody>${bodyRows}</tbody>
+   <tfoot>
+    <tr>
+     <td colspan="${2+AQ.length}" style="background:#1b120c;color:#fff3e8;padding:9px 12px;font-weight:bold;text-align:right">MÉDIA DA TURMA:</td>
+     <td style="background:#ff6a00;color:#1b120c;padding:9px 10px;font-weight:bold;text-align:center;font-size:14px">${avgTxt}</td>
+     <td colspan="2" style="background:#1b120c;color:#fff3e8;padding:9px 10px;text-align:center">Aprovados: ${an.passCount}/${an.validGrades.length} (${passPct})</td>
+    </tr>
+    ${gapsRows?`<tr><td colspan="${5+AQ.length}" style="height:8px"></td></tr><tr><td colspan="${5+AQ.length}" style="background:#2a1a10;color:#fff3e8;padding:7px 12px;font-weight:bold">DIAGNÓSTICO DE LACUNAS COLETIVAS DA TURMA</td></tr>${gapsRows}`:''}
+   </tfoot>
+  </table>
+ </body></html>`;
+ downloadBlob('\uFEFF'+html,`Relatorio_FALPD_${c.name.replace(/\s+/g,'_')}.xls`,'application/vnd.ms-excel;charset=utf-8');
+}
+
+/* Exportação Relatório PDF (abre janela formatada pronta a guardar como PDF / imprimir) */
+function exportClassPDF(c,an){
+ const date=new Date().toLocaleDateString('pt-PT');
+ const avgTxt=an.avgClass!==null?an.avgClass.toFixed(1):'—';
+ const passPct=an.validGrades.length?Math.round(an.passCount/an.validGrades.length*100)+'%':'—';
+ const w=window.open('','_blank','width=920,height=760');
+ if(!w){alert('Permite janelas de pop-up para gerar o relatório PDF.');return}
+ w.document.write(`<!DOCTYPE html><html lang="pt-PT"><head><meta charset="utf-8"><title>Relatório FALPD — ${c.name}</title>
+ <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap">
+ <style>
+  body{font:13px/1.5 'Sora',sans-serif;color:#2a1a10;margin:0;padding:32px}
+  .hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #ff6a00;padding-bottom:14px;margin-bottom:20px}
+  .hdr h1{margin:0;font-size:22px}.hdr span{color:#7a6555;font-size:12px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .kpi{border:1px solid #f3dfcf;background:#fffaf5;border-radius:10px;padding:12px}
+  .kpi b{display:block;font-size:22px;color:#b84700}.kpi small{color:#7a6555}
+  h2{font-size:15px;margin:20px 0 8px;color:#b84700;text-transform:uppercase;letter-spacing:.05em}
+  .gap{padding:8px 12px;border-left:4px solid #c62d26;background:#fff4ea;margin-bottom:6px;border-radius:6px}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th{background:#1b120c;color:#fff3e8;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+  td{padding:7px 10px;border-bottom:1px solid #ead8c8}
+  .bar-w{height:8px;background:#ead8c8;border-radius:4px;overflow:hidden;width:140px;display:inline-block;vertical-align:middle;margin-right:8px}
+  .bar-f{height:100%;background:#ff6a00;display:block}
+  @media print{.noprint{display:none}}
+ </style></head><body>
+ <div class="noprint" style="margin-bottom:16px;text-align:right"><button onclick="window.print()" style="background:#ff6a00;color:#1b120c;border:0;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer">Guardar como PDF / Imprimir</button></div>
+ <div class="hdr"><div><h1>FALPD — Relatório Estatístico e Pauta da Turma ${c.name}</h1><span>Português · Ensino Secundário</span></div><div><b>Data:</b> ${date}</div></div>
+ <div class="kpis">
+  <div class="kpi"><b>${an.studentRows.length}</b><small>Alunos na turma</small></div>
+  <div class="kpi"><b>${an.validGrades.length}</b><small>Alunos avaliados</small></div>
+  <div class="kpi"><b>${avgTxt}</b><small>Média global (0–20)</small></div>
+  <div class="kpi"><b>${passPct}</b><small>Taxa de aprovação</small></div>
+ </div>
+ ${an.gaps.length?`<h2>Diagnóstico de Lacunas Coletivas</h2>${an.gaps.map(g=>`<div class="gap"><b>${g.msg}</b><br><small>Sugestão: ${g.rec}</small></div>`).join('')}`:''}
+ ${an.qStats.length?`<h2>Desempenho por Questão</h2><table><thead><tr><th>Teste / Grupo</th><th>Questão</th><th>Domínio</th><th>Média</th><th>Taxa de Falha</th></tr></thead><tbody>${an.qStats.map(q=>`<tr><td>${q.testName} · ${q.groupName}</td><td><b>Q. ${q.label}</b></td><td>${DOMN[q.dom]}</td><td><span class="bar-w"><i class="bar-f" style="width:${q.avgPct}%"></i></span>${q.avgPct}%</td><td><b>${q.failRate}%</b></td></tr>`).join('')}</tbody></table>`:''}
+ <h2>Pauta Consolidada de Classificações (Inovar / GIAE)</h2>
+ <table><thead><tr><th>N.º</th><th>Nome do Aluno</th><th>Nota (0–20)</th><th>Nota Pauta</th><th>Situação</th></tr></thead>
+ <tbody>${an.studentRows.map(r=>`<tr><td>${r.num}</td><td><b>${r.name}</b></td><td>${r.nota!==null?r.nota.toFixed(1):'—'}</td><td><b>${r.round!==null?r.round:'—'}</b></td><td>${r.nota===null?'Sem nota':r.nota>=9.5?'Aprovado':'Em risco'}</td></tr>`).join('')}</tbody></table>
+ <script>setTimeout(()=>window.print(),350)<\/script>
+ </body></html>`);
+ w.document.close();
+}
+
 /* ===== UI: blocos reutilizáveis ===== */
-const IC={home:'M3 11l9-8 9 8M5 10v10h14V10',users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',list:'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01',file:'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5',pen:'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',up:'M12 16V4M7 9l5-5 5 5M4 20h16',check:'M20 6L9 17l-5-5',x:'M18 6L6 18M6 6l12 12',shield:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',spark:'M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z',plus:'M12 5v14M5 12h14',trash:'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14',loop:'M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3',eye:'M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6'};
-const Ico=({n,s=18})=>h`<svg class="ico" width=${s} height=${s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d=${IC[n]}/></svg>`;
+const IC={
+ home:'M3 11l9-8 9 8M5 10v10h14V10',
+ users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+ list:'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01',
+ file:'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5',
+ pen:'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+ up:'M12 16V4M7 9l5-5 5 5M4 20h16',
+ down:'M12 4v12M7 11l5 5 5-5M4 20h16',
+ check:'M20 6L9 17l-5-5',
+ x:'M18 6L6 18M6 6l12 12',
+ shield:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+ spark:'M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z',
+ plus:'M12 5v14M5 12h14',
+ trash:'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14',
+ loop:'M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3',
+ eye:'M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
+ chart:'M18 20V10M12 20V4M6 20v-6',
+ user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+ layers:'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+ alert:'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01'
+};
+const Ico=({n,s=18})=>h`<svg class="ico" width=${s} height=${s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d=${IC[n]||IC.spark}/></svg>`;
 const Logo=({s=40})=>h`<svg width=${s} height=${s} viewBox="0 0 64 64" role="img" aria-label="Livro aberto com rede de padrões">
 <path d="M6 18Q22 11 32 20Q42 11 58 18V52Q42 45 32 54Q22 45 6 52Z" fill="#ff6a00"/>
 <path d="M32 20V54" stroke="#fff" strokeWidth="2"/>
@@ -373,7 +771,7 @@ const isPdf=f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name);
 const wc=s=>(s.match(/\p{L}+/gu)||[]).length;
 const ini=n=>n.trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
 
-/* Zona de largar PDFs: arrastar, clicar ou teclado (Enter/Espaço) */
+/* Zona de largar PDFs */
 function DropZone({multi,busy,onFiles,title,hint,compact}){
  const[over,setOver]=useState(false),[bad,setBad]=useState(''),r=useRef(),n=useRef(0);
  const take=list=>{const all=[...list],ok=all.filter(isPdf);setBad(all.length&&ok.length<all.length?(ok.length?'Ignorei '+(all.length-ok.length)+' ficheiro(s) que não são PDF.':'Só são aceites ficheiros PDF.'):'');if(ok.length)onFiles(multi?ok:ok.slice(0,1))};
@@ -390,42 +788,112 @@ function DropZone({multi,busy,onFiles,title,hint,compact}){
   <input ref=${r} type="file" accept="application/pdf,.pdf" multiple=${!!multi} hidden onClick=${e=>e.stopPropagation()} onChange=${e=>{take(e.target.files);e.target.value=''}}/>
  </div>`;
 }
-/* Zona de largar + leitura dos PDFs + lista de ficheiros carregados */
+
 function PdfInput({multi,items,onAdd,onDel,title,hint,compact,max=150000,preview}){
  const[busy,setBusy]=useState(false),[err,setErr]=useState('');
  const go=async fl=>{setBusy(true);setErr('');for(const f of fl){try{onAdd({name:f.name,text:(await pdfText(f)).slice(0,max)})}catch(x){setErr('Não foi possível ler «'+f.name+'»: '+(x&&x.message?x.message:x)+'.')}}setBusy(false)};
  return h`<div><${DropZone} multi=${multi} busy=${busy} onFiles=${go} title=${title} hint=${hint} compact=${compact}/>
   ${err&&h`<div class="note err" role="alert">${err}</div>`}
   ${items.length>0&&h`<ul class="files">${items.map((d,i)=>h`<li class="file" key=${i}><${Ico} n="file" s=${22}/><div class="fi"><b title=${d.name}>${d.name}</b>
-   <span class="mu">${fmtN(d.text.length)} caracteres lidos</span>${d.text.trim().length<30&&h` <span class="chip warn">sem texto — pode ser uma digitalização</span>`}
-   ${preview&&d.text.trim().length>=30&&h`<div class="pv">${d.text.slice(0,160)}…</div>`}</div>
-   <button class="ibtn" aria-label=${'Remover '+d.name} onClick=${()=>onDel(i)}><${Ico} n="x"/></button></li>`)}</ul>`}</div>`;
+  <span class="mu">${fmtN(d.text.length)} caracteres lidos</span>${d.text.trim().length<30&&h` <span class="chip warn">sem texto — pode ser uma digitalização</span>`}
+  ${preview&&d.text.trim().length>=30&&h`<div class="pv">${d.text.slice(0,160)}…</div>`}</div>
+  <button class="ibtn" aria-label=${'Remover '+d.name} onClick=${()=>onDel(i)}><${Ico} n="x"/></button></li>`)}</ul>`}</div>`;
 }
+
 function Clamp({text}){const[o,setO]=useState(false),long=text.length>260;return h`<div><div class=${'stmt'+(long&&!o?' cl':'')}>${text||'(sem enunciado)'}</div>${long&&h`<button class="lnk" onClick=${()=>setO(!o)}>${o?'Mostrar menos':'Ver enunciado completo'}</button>`}</div>`}
+
+/* ===== Dummy Page: Criar Conta / Iniciar Sessão ===== */
+function AuthPage({user,setUser,go}){
+ const[mode,setMode]=useState(user.hasAccount?'login':'register');
+ const[email,setEmail]=useState(user.email||'');
+ const[pass,setPass]=useState('');
+ const[msg,setMsg]=useState('');
+
+ const submit=e=>{
+  e.preventDefault();
+  if(!email.trim()||!pass.trim()){setMsg('Preenche o email e a palavra-passe.');return}
+  setUser({loggedIn:true,hasAccount:true,email:email.trim(),mode});
+  setPass('');
+  setMsg(mode==='register'?'Conta criada e sessão iniciada com sucesso!':'Sessão iniciada com sucesso!');
+ };
+
+ const toggleStatus=()=>{
+  if(user.loggedIn){
+   setUser({...user,loggedIn:false});
+   setMsg('Sessão terminada. O botão no topo mudou para «Iniciar sessão».');
+  }else if(user.hasAccount){
+   setUser({loggedIn:false,hasAccount:false,email:''});
+   setMsg('Estado reposto para novo utilizador («Criar conta / Iniciar sessão»).');
+  }
+ };
+
+ return h`<div class="page-anim">
+  <div class="auth-wrap">
+   <div style="text-align:center">
+    <div class="fic" style="margin:0 auto 12px;width:52px;height:52px"><${Ico} n="user" s=${26}/></div>
+    <div class="eyebrow">Conta de Docente · Dummy Page</div>
+    <h2>${user.loggedIn?'Sessão Ativa':mode==='register'?'Criar conta':'Iniciar sessão'}</h2>
+    <p class="mu" style="margin-top:6px">Página de demonstração de autenticação. O botão no cabeçalho adapta-se ao teu estado.</p>
+   </div>
+
+   <div class="auth-tabs">
+    <button type="button" class=${mode==='register'?'on':''} onClick=${()=>{setMode('register');setMsg('')}}>Criar conta</button>
+    <button type="button" class=${mode==='login'?'on':''} onClick=${()=>{setMode('login');setMsg('')}}>Iniciar sessão</button>
+   </div>
+
+   <form onSubmit=${submit} style="display:grid;gap:14px">
+    <div>
+     <label for="auth-email">Email institucional ou pessoal</label>
+     <input id="auth-email" type="email" required placeholder="professor@escola.pt" value=${email} onInput=${e=>setEmail(e.target.value)}/>
+    </div>
+    <div>
+     <label for="auth-pass">Palavra-passe</label>
+     <input id="auth-pass" type="password" required placeholder="••••••••" value=${pass} onInput=${e=>setPass(e.target.value)}/>
+    </div>
+    <button type="submit" class="btn lg" style="width:100%;margin-top:4px">
+     <${Ico} n="check" s=${18}/> ${mode==='register'?'Criar conta':'Iniciar sessão'}
+    </button>
+   </form>
+
+   ${msg&&h`<div class="note ok" style="margin-top:14px">${msg}</div>`}
+
+   <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <span class="chip ${user.loggedIn?'ok':'or'}">
+     Estado: ${user.loggedIn?'Sessão iniciada ('+user.email+')':user.hasAccount?'Conta criada (sessão desligada)':'Sem conta'}
+    </span>
+    ${(user.loggedIn||user.hasAccount)&&h`<button type="button" class="btn k s" onClick=${toggleStatus}>
+     ${user.loggedIn?'Terminar sessão':'Repor estado inicial'}
+    </button>`}
+   </div>
+   <p style="margin-top:14px;text-align:center"><button type="button" class="lnk" onClick=${()=>go('inicio')}>← Voltar ao início</button></p>
+  </div>
+ </div>`;
+}
 
 /* ===== Início (landing) ===== */
 function Home({go,n,crit,cls,tests}){
  const alunos=cls.reduce((a,c)=>a+c.students.length,0),graded=tests.reduce((a,t)=>a+Object.keys(t.grades||{}).length,0);
  const todo=[
   {t:'Carrega os critérios',d:'O PDF dos critérios do ano corrente (pode ter todas as disciplinas).',ok:crit>0,to:'crit',b:'Carregar critérios'},
-  {t:'Cria a tua turma',d:'Adiciona os alunos, um a um ou colando uma lista.',ok:alunos>0,to:'dash',b:'Gerir turmas'},
-  {t:'Cria um teste',d:'Larga o PDF do teste: a FALPD separa grupos e questões.',ok:tests.length>0,to:'corr',b:'Novo teste'},
-  {t:'Corrige a primeira resposta',d:'Cola a resposta do aluno e confirma a nota proposta.',ok:graded>0,to:'corr',b:'Ir para a correção'}];
+  {t:'Cria a tua turma',d:'Adiciona os alunos, analisa estatísticas coletivas e exporta relatórios.',ok:alunos>0,to:'dash',b:'Gerir turmas'},
+  {t:'Cria um teste',d:'Larga o PDF do teste: a FALPD separa grupos, questões e identifica respostas-modelo.',ok:tests.length>0,to:'corr',b:'Novo teste'},
+  {t:'Corrige individualmente ou em lote',d:'Cola a resposta ou faz Batch Upload de um PDF com as respostas da turma.',ok:graded>0,to:'corr',b:'Ir para a correção'}];
  const nx=todo.findIndex(x=>!x.ok),done=todo.filter(x=>x.ok).length;
  const start=()=>go(nx<0?'corr':todo[nx].to);
- const feats=[['spark','Padrões, não palpites','Mede 16 parâmetros: semelhança com a resposta-modelo, conceitos-chave, recursos expressivos, coesão e extensão.'],
-  ['eye','Sentido, não só palavras','A análise semântica local (opcional) reconhece paráfrases, sem enviar texto para fora do teu computador.'],
-  ['check','Elementos essenciais','Defines o que tem de estar na resposta. Trocar uma figura de estilo por outra é detetado.'],
-  ['pen','Ortografia e pontuação','Dicionário de português europeu e regras de vírgula, com avisos para rever, nunca descontos automáticos.'],
+ const feats=[
+  ['spark','Padrões e Respostas-Modelo','Mede 16 parâmetros e identifica automaticamente respostas-modelo incluídas no PDF do teste.'],
+  ['layers','Importação em Lote (Batch Upload)','Faz upload de um PDF com as respostas de um teste inteiro ou várias folhas de resposta de uma só vez.'],
+  ['chart','Dashboard Estatístico da Turma','Identifica lacunas coletivas (ex.: «80% da turma falhou recursos expressivos») para preparar revisões.'],
+  ['down','Exportação Excel, CSV e PDF','Descarrega pautas consolidadas com Excel formatado, CSV para Inovar/GIAE e relatórios em PDF.'],
   ['loop','Aprende contigo','Cada nota que registas ajusta o motor. '+(n?'Já aprendeu com '+n+' nota(s) tua(s).':'Ainda não registaste notas.')],
-  ['shield','Os dados ficam contigo','Turmas, notas e PDFs ficam guardados neste navegador. Uma segunda opinião LLM é opcional e só corre se a ativares.']];
- return h`<div class="land">
+  ['shield','Os dados ficam contigo','Turmas, notas e PDFs ficam guardados neste navegador. Uma segunda opinião LLM é opcional.']];
+ return h`<div class="land page-anim">
  <section class="hero"><div>
   <div class="eyebrow" style="color:var(--or2)">Para docentes de Português</div>
   <h1>Corrige literatura <span>com padrões</span>, não com palpites.</h1>
-  <p class="lead">Carrega os critérios e o teste, escreve uma vez a resposta-modelo e recebe uma proposta de nota para cada resposta. A decisão final é sempre tua.</p>
+  <p class="lead">Carrega os critérios e o teste, importa respostas em lote e analisa o desempenho estatístico de toda a turma. A decisão final é sempre tua.</p>
   <div class="cta"><button class="btn lg" onClick=${start}>${nx<0?'Continuar a corrigir':'Começar agora'}</button><button class="btn g lg" onClick=${()=>{const e=document.getElementById('como');e&&e.scrollIntoView({behavior:'smooth'})}}>Ver como funciona</button></div>
-  <div class="trust"><span><${Ico} n="shield" s=${16}/> Dados só no teu navegador</span><span><${Ico} n="loop" s=${16}/> Aprende com as tuas notas</span><span><${Ico} n="check" s=${16}/> Sem IA externa por defeito</span></div>
+  <div class="trust"><span><${Ico} n="shield" s=${16}/> Dados só no teu navegador</span><span><${Ico} n="layers" s=${16}/> Batch Upload PDF</span><span><${Ico} n="chart" s=${16}/> Estatísticas & Excel Inovar/GIAE</span></div>
  </div>
  <div class="mock" aria-hidden="true"><div class="mh"><span>Questão 2.1 · Educação literária</span><span class="chip or">Proposta</span></div>
   <div class="ms">8,5<small> / 10</small></div>
@@ -441,11 +909,12 @@ function Home({go,n,crit,cls,tests}){
   <div class="row" style="justify-content:space-between;align-items:center"><div><div class="eyebrow">Primeiros passos</div><h2>${nx<0?'Está tudo pronto':'Prepara a tua primeira correção'}</h2></div><span class="chip ${nx<0?'ok':'or'}">${done} de ${todo.length} concluídos</span></div>
   <div class="pbar" style="margin-top:14px"><i style=${{width:(done/todo.length*100)+'%'}}></i></div>
   <ol class="todo">${todo.map((x,i)=>h`<li key=${x.t} class=${x.ok?'done':i===nx?'next':''}><span class="tk">${x.ok?'✔':i+1}</span><div class="tx"><b>${x.t}</b><span class="mu">${x.d}</span></div>
-   ${!x.ok&&h`<button class=${'btn s'+(i===nx?'':' g')} onClick=${()=>go(x.to)}>${x.b}</button>`}</li>`)}</ol>
+  ${!x.ok&&h`<button class=${'btn s'+(i===nx?'':' g')} onClick=${()=>go(x.to)}>${x.b}</button>`}</li>`)}</ol>
  </div></section>
 
- <section class="blk" id="como"><div class="eyebrow">Como funciona</div><h2>Quatro passos, do PDF à nota</h2>
-  <div class="steps">${[['Prepara','Carrega os critérios e, por teste, PDFs do autor para dar contexto ao motor.'],['Cria o teste','Larga o PDF: grupos e questões separam-se sozinhos. Escreves a resposta-modelo uma vez.'],['Avalia','Cola as respostas de cada aluno e a FALPD propõe uma nota por questão, com justificação.'],['Decide','Confirmas ou corriges a nota. O motor aprende e a turma fica atualizada.']].map(([t,d],i)=>h`<div class="step" key=${t}><div class="n">${i+1}</div><h3>${t}</h3><span class="mu">${d}</span></div>`)}</div></section>
+ <section class="blk" id="como"><div class="eyebrow">Como funciona</div><h2>Quatro passos, do PDF à pauta</h2>
+  <div class="steps">${[['Prepara','Carrega os critérios e, por teste, PDFs do autor para dar contexto ao motor.'],['Cria o teste','Larga o PDF: grupos, questões e respostas-modelo são identificados automaticamente.'],['Avalia em Lote','Cola as respostas ou carrega um PDF com as respostas da turma inteira.'],['Analisa e Exporta','Consulta o Dashboard estatístico de lacunas da turma e exporta para Excel, CSV ou PDF.']].map(([t,d],i)=>h`<div class="step" key=${t}><div class="n">${i+1}</div><h3>${t}</h3><span class="mu">${d}</span></div>`)}
+ </div></section>
 
  <section class="blk"><div class="eyebrow">O que analisa</div><h2>Mais do que contar palavras</h2>
   <div class="grid">${feats.map(([i,t,d])=>h`<div class="card" key=${t}><div class="fic"><${Ico} n=${i} s=${22}/></div><h3>${t}</h3><span class="mu">${d}</span></div>`)}</div></section>
@@ -456,18 +925,19 @@ function Home({go,n,crit,cls,tests}){
 
 /* ===== Critérios ===== */
 function CritPage({crit,setDocs,pp}){
- return h`<div><div class="ph"><div><h1>Critérios de avaliação</h1><p class="mu">Carrega uma vez o PDF dos critérios do ano corrente. A FALPD usa só o que interessa a cada questão.</p></div></div>
+ return h`<div class="page-anim"><div class="ph"><div><h1>Critérios de avaliação</h1><p class="mu">Carrega uma vez o PDF dos critérios do ano corrente. A FALPD usa só o que interessa a cada questão.</p></div></div>
  <section class="sec" style="margin-top:0"><${PdfInput} title="Larga aqui o PDF dos critérios" hint="ou clica para escolher o ficheiro · PDF com texto" items=${crit} max=${300000} preview=${true}
   onAdd=${d=>setDocs(o=>({...o,crit:[d]}))} onDel=${i=>setDocs(o=>({...o,crit:(o.crit||[]).filter((_,j)=>j!==i)}))}/>
- ${crit.length>0&&h`<div class=${'note '+(pp[0]?'ok':'')}>${pp[0]?'Páginas de Português 12.º reconhecidas: '+pp[0]+' de '+pp[1]+'. As restantes disciplinas são ignoradas.':'Não encontrei páginas de Português 12.º neste PDF — vai ser usado o documento inteiro.'}</div>`}</section>
+ ${crit.length>0&&h`<div class=${'note '+(pp[0]?'ok':'')}>${pp[0]?'Páginas de Português 12.º reconhecidas: '+pp[0]+' de '+pp[1]+'. As restantes disciplinas são ignoradas.':'Não encontrei páginas de Português 12.º neste PDF — vai ser usado o documento inteiro.'}</div>`}
+ </section>
  <section class="sec"><h3>O que acontece ao PDF</h3><div class="steps"><div class="step"><div class="n">1</div><span class="mu">O PDF é lido neste navegador. Não é enviado para nenhum servidor.</span></div>
   <div class="step"><div class="n">2</div><span class="mu">Só contam as páginas de Português 12.º. PLNM e outras disciplinas são ignoradas.</span></div>
   <div class="step"><div class="n">3</div><span class="mu">Em cada questão usa-se apenas o domínio respetivo: Leitura, Educação literária, Escrita ou Gramática.</span></div></div></section></div>`;
 }
 
-/* ===== Turmas ===== */
-function Dash({cls,setCls}){
- const[ci,setCi]=useState(0),[nm,setNm]=useState(''),[cn,setCn]=useState(''),[bulk,setBulk]=useState('');
+/* ===== Turmas + Dashboard de Análise Estatística + Exportação (Excel / CSV / PDF) ===== */
+function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
+ const[ci,setCi]=useState(0),[nm,setNm]=useState(''),[cn,setCn]=useState(''),[bulk,setBulk]=useState(''),[tab,setTab]=useState('analytics');
  const idx=cls[ci]?ci:0,c=cls[idx];
  const upd=f=>setCls(cls.map((x,i)=>i===idx?f(x):x));
  const sts=c?c.students:[],ns=sts.filter(s=>s.nota!=null&&s.nota!==''),avg=ns.length?(ns.reduce((a,s)=>a+ +s.nota,0)/ns.length).toFixed(1):'—';
@@ -476,56 +946,250 @@ function Dash({cls,setCls}){
  const addS=()=>{if(nm.trim()){upd(x=>({...x,students:[...x.students,{id:Date.now(),name:nm.trim(),nota:null}]}));setNm('')}};
  const addB=()=>{const L=bulk.split('\n').map(x=>x.trim()).filter(Boolean);if(L.length){const t=Date.now();upd(x=>({...x,students:[...x.students,...L.map((name,i)=>({id:t+i,name,nota:null}))]}));setBulk('')}};
  const enter=f=>e=>{if(e.key==='Enter'){e.preventDefault();f()}};
- return h`<div><div class="ph"><div><h1>Turmas</h1><p class="mu">Alunos e notas do último teste de literatura (0–20). As notas são preenchidas ao guardar uma correção, mas podes editá-las aqui.</p></div></div>
+
+ /* Gera dados de exemplo para testar o Dashboard Estatístico e Exportação Excel */
+ const loadDemoData=()=>{
+  if(!c)return;
+  const baseId=Date.now();
+  const demoStudents=[
+   {id:baseId+1,name:'Ana Beatriz Silva',nota:16.4},
+   {id:baseId+2,name:'Bruno Miguel Costa',nota:11.2},
+   {id:baseId+3,name:'Carolina Ferreira',nota:8.6},
+   {id:baseId+4,name:'Diogo Alexandre Santos',nota:14.8},
+   {id:baseId+5,name:'Eduarda Martins',nota:9.1},
+   {id:baseId+6,name:'Filipe Rodrigues',nota:12.5},
+   {id:baseId+7,name:'Gonçalo Pereira',nota:10.4},
+   {id:baseId+8,name:'Helena Sofia Sousa',nota:17.2},
+   {id:baseId+9,name:'Inês Oliveira',nota:13.0},
+   {id:baseId+10,name:'João Pedro Almeida',nota:7.8}
+  ];
+  upd(x=>({...x,students:demoStudents}));
+  const demoTest={
+   id:baseId+100,
+   name:'Teste 1 — Fernando Pessoa e Os Lusíadas',
+   classId:c.id,
+   author:'Fernando Pessoa',
+   ctx:[],
+   paper:null,
+   reuse:true,
+   date:new Date().toLocaleDateString('pt-PT'),
+   groups:[
+    {id:'g0',name:'GRUPO I',intro:'Poema de Fernando Pessoa ortónimo.',qs:[
+     {id:'q1',label:'1.1',text:'Explicite o estado de espírito do sujeito poético no primeiro quarteto. (20 pontos)',max:20,model:'O sujeito poético revela dor de pensar, nostalgia da infância inconsciente e angústia existencial.',dom:'EL',chave:'dor de pensar\ninfância | inconsciência'},
+     {id:'q2',label:'1.2',text:'Relacione o sonho com a impossibilidade de felicidade. (20 pontos)',max:20,model:'O sonho constitui uma evasão ilusória que acentua o desencanto perante a realidade.',dom:'EL',chave:'sonho | ilusão\ndesencanto'}
+    ]},
+    {id:'g1',name:'GRUPO II',intro:'Excerto de Os Lusíadas e questões de recursos expressivos e gramática.',qs:[
+     {id:'q3',label:'2.1',text:'Identifique os recursos expressivos presentes nos versos 5 a 8 e explicite o seu valor. (20 pontos)',max:20,model:'Presença de metáfora e hipérbole para engrandecer o feito épico dos navegadores.',dom:'EL',chave:'metáfora :: 2\nhipérbole :: 2'},
+     {id:'q4',label:'2.2',text:'Classifique a oração subordinada presente no verso 6 e indique a função sintática. (20 pontos)',max:20,model:'Oração subordinada adjetiva relativa restritiva; função sintática de modificador do nome restritivo.',dom:'GR',chave:'subordinada adjetiva relativa\nmodificador'}
+    ]},
+    {id:'g2',name:'GRUPO III',intro:'Texto de opinião (150 a 200 palavras).',qs:[
+     {id:'q5',label:'3.1',text:'Redija um texto de opinião fundamentado sobre o valor da memória (150 a 200 palavras). (20 pontos)',max:20,model:'A memória coletiva e individual preserva a identidade cultural, permitindo refletir criticamente sobre o presente e construir o futuro.',dom:'ES'}
+    ]}
+   ],
+   answers:{},
+   grades:Object.fromEntries(demoStudents.map((s,idx)=>{
+    /* 80% da turma falha a pergunta 2.1 de recursos expressivos do Grupo II */
+    const q3Pass=idx===0||idx===7;
+    const q1p=Math.round((s.nota/20)*20*10)/10;
+    const q2p=Math.round(Math.min(20,(s.nota/20)*21)*10)/10;
+    const q3p=q3Pass?17:6;
+    const q4p=idx%2===0?14:8;
+    const q5p=Math.round((s.nota/20)*20*10)/10;
+    const totP=q1p+q2p+q3p+q4p+q5p;
+    return[String(s.id),{
+     p:totP,m:100,
+     qs:{
+      q1:{p:q1p,m:20,dom:'EL',es:[{lab:'dor de pensar',hit:s.nota>=10}],wrong:0},
+      q2:{p:q2p,m:20,dom:'EL',es:[{lab:'sonho | ilusão',hit:s.nota>=9.5}],wrong:0},
+      q3:{p:q3p,m:20,dom:'EL',es:[{lab:'metáfora',hit:q3Pass},{lab:'hipérbole',hit:q3Pass}],wrong:q3Pass?0:1},
+      q4:{p:q4p,m:20,dom:'GR',es:[{lab:'subordinada adjetiva relativa',hit:idx%2===0}],wrong:0},
+      q5:{p:q5p,m:20,dom:'ES',es:[],wrong:0}
+     }
+    }];
+   }))
+  };
+  setTests(prev=>[...prev.filter(t=>t.name!==demoTest.name),demoTest]);
+ };
+
+ const an=c?computeClassAnalytics(c,tests,m,crit):null;
+ const maxHisto=an?Math.max(1,...an.dist.map(d=>d.cnt)):1;
+
+ return h`<div class="page-anim"><div class="ph">
+  <div><h1>Turmas e Análise Estatística</h1><p class="mu">Painel coletivo da turma, diagnóstico de lacunas para aulas de revisão e exportação de relatórios (Excel, CSV Inovar/GIAE e PDF).</p></div>
+  ${c&&h`<div class="exp-bar">
+   <button class="btn ok s" onClick=${()=>exportClassExcel(c,an)} title="Descarregar ficheiro Excel formatado (.xls)"><${Ico} n="down" s=${15}/> Excel Bonito (.xls)</button>
+   <button class="btn g s" onClick=${()=>exportClassCSV(c,an)} title="Exportar CSV compatível com Inovar e GIAE"><${Ico} n="down" s=${15}/> CSV (Inovar / GIAE)</button>
+   <button class="btn k s" onClick=${()=>exportClassPDF(c,an)} title="Gerar relatório em PDF para impressão"><${Ico} n="file" s=${15}/> Relatório PDF</button>
+  </div>`}
+ </div>
+
  <div class="tabs">${cls.map((x,i)=>h`<button key=${x.id} class=${'pill'+(i===idx?' on':'')} onClick=${()=>setCi(i)}>${x.name}</button>`)}</div>
+
  <details class="sec" style="padding:12px 20px"><summary class="mu" style="font-weight:600"><${Ico} n="plus" s=${16}/> Nova turma</summary>
   <div class="row" style="margin-top:12px"><div class="grow"><label for="nt">Nome da turma</label><input id="nt" placeholder="Ex.: 12.º B" value=${cn} onInput=${e=>setCn(e.target.value)} onKeyDown=${enter(addC)}/></div><button class="btn" onClick=${addC}>Criar turma</button></div></details>
+
  ${c&&h`<div>
-  <div class="stats"><div class="stat"><b>${sts.length}</b><span>alunos</span></div><div class="stat"><b>${ns.length}</b><span>com nota</span></div><div class="stat"><b>${avg}</b><span>média da turma</span></div></div>
-  <section class="sec"><div class="row" style="justify-content:space-between;align-items:center"><h3>${c.name}</h3>
-   ${cls.length>1&&h`<button class="btn k s" onClick=${()=>{if(confirm('Remover a turma '+c.name+'?')){setCls(cls.filter((_,i)=>i!==idx));setCi(0)}}}><${Ico} n="trash" s=${14}/> Remover turma</button>`}</div>
-   ${sts.length?h`<div class="tw"><table><thead><tr><th>Aluno</th><th>Nota (0–20)</th><th></th></tr></thead><tbody>${sts.map(s=>h`<tr key=${s.id}>
-    <td><div class="who"><span class="av">${ini(s.name)}</span><input aria-label="Nome do aluno" value=${s.name} onInput=${e=>setS(s.id,{name:e.target.value})}/></div></td>
-    <td><input class="nota" aria-label=${'Nota de '+s.name} type="number" min="0" max="20" step="0.1" placeholder="—" value=${s.nota??''} onInput=${e=>setS(s.id,{nota:e.target.value})}/></td>
-    <td class="ta"><button class="ibtn" aria-label=${'Remover '+s.name} onClick=${()=>upd(x=>({...x,students:x.students.filter(y=>y.id!==s.id)}))}><${Ico} n="trash"/></button></td></tr>`)}</tbody></table></div>`
-   :h`<div class="empty"><div class="fic"><${Ico} n="users" s=${26}/></div><h3>Ainda não há alunos</h3><p>Adiciona o primeiro abaixo, ou cola uma lista de nomes.</p></div>`}
+  <div class="stats">
+   <div class="stat"><b>${sts.length}</b><span>alunos inscritos</span></div>
+   <div class="stat"><b>${an.validGrades.length}</b><span>com classificação</span></div>
+   <div class="stat"><b>${an.avgClass!==null?an.avgClass.toFixed(1):avg}</b><span>média da turma (0–20)</span></div>
+   <div class="stat"><b>${an.validGrades.length?Math.round(an.passCount/an.validGrades.length*100)+'%':'—'}</b><span>taxa de aprovação (≥ 9,5)</span></div>
+  </div>
+
+  <div class="tabs" style="margin-top:20px">
+   <button class=${'pill'+(tab==='analytics'?' on':'')} onClick=${()=>setTab('analytics')}><${Ico} n="chart" s=${15}/> Dashboard Estatístico da Turma</button>
+   <button class=${'pill'+(tab==='list'?' on':'')} onClick=${()=>setTab('list')}><${Ico} n="users" s=${15}/> Lista de Alunos e Notas (${sts.length})</button>
+  </div>
+
+  ${tab==='analytics'&&h`<div>
+   ${(!an.qStats.length&&!an.validGrades.length)?h`<section class="sec empty">
+    <div class="fic"><${Ico} n="chart" s=${26}/></div>
+    <h3>Ainda não há dados estatísticos para ${c.name}</h3>
+    <p>Corrige um teste desta turma ou carrega dados de demonstração para veres os gráficos de lacunas coletivas e testar a exportação Excel/CSV/PDF.</p>
+    <p style="margin-top:14px"><button class="btn" onClick=${loadDemoData}><${Ico} n="spark" s=${16}/> Carregar dados de demonstração da turma</button></p>
+   </section>`:h`<div>
+    <section class="sec">
+     <div class="row" style="justify-content:space-between;align-items:center">
+      <div>
+       <div class="eyebrow">Diagnóstico Coletivo · Preparação de Aulas de Revisão</div>
+       <h3>Lacunas identificadas na turma (${c.name})</h3>
+      </div>
+      <span class="chip ${an.gaps.length?'warn':'ok'}">${an.gaps.length?an.gaps.length+' alerta(s) coletivo(s)':'Turma consolidada'}</span>
+     </div>
+     ${an.gaps.length?h`<div class="gap-list">${an.gaps.map((g,i)=>h`<div key=${i} class=${'gap-item '+g.sev}>
+      <${Ico} n="alert" s=${20}/>
+      <div style="flex:1">
+       <b style="display:block;font-size:14px">«${g.msg}»</b>
+       <span class="mu"><b>Ação sugerida:</b> ${g.rec}</span>
+      </div>
+      <span class=${'chip '+(g.sev==='crit'?'err':'warn')}>${g.rate}% falha</span>
+     </div>`)}</div>`:h`<div class="note ok">Excelente! Nenhuma questão apresenta uma taxa de falha coletiva superior a 50% nesta turma.</div>`}
+    </section>
+
+    <div class="dash-grid">
+     <section class="sec" style="margin-top:0">
+      <h3>Desempenho e Taxa de Falha por Questão</h3>
+      <p class="mu">Percentagem da turma que falhou (&lt; 50% da cotação) ou trocou elementos essenciais em cada pergunta.</p>
+      ${an.qStats.length?h`<div class="chart-rows">${an.qStats.map(q=>{
+       const fail=Math.max(q.failRate,q.figFailRate);
+       const barCls=fail>=60?'err':fail>=40?'warn':'ok';
+       return h`<div class="chart-row" key=${q.id}>
+        <div class="chart-lbl">
+         <span><b>${q.groupName} · Q. ${q.label}</b> <span class="mu">(${DOMN[q.dom]}${q.hasFig?' · Recursos expressivos':''})</span></span>
+         <span class=${'chip '+(fail>=60?'err':fail>=40?'warn':'ok')}>${fail}% falhou · média ${q.avgPct}%</span>
+        </div>
+        <div class=${'bar '+barCls}><i style=${{width:Math.max(4,q.avgPct)+'%'}}></i></div>
+       </div>`;
+      })}</div>`:h`<p class="mu" style="margin-top:12px">Avalia questões em «Correção» para ver o gráfico por pergunta.</p>`}
+     </section>
+
+     <section class="sec" style="margin-top:0">
+      <h3>Domínios e Distribuição (0–20)</h3>
+      <p class="mu">Média coletiva por domínio de avaliação.</p>
+      <div class="chart-rows">
+       ${Object.entries(DOMN).map(([dk,dn])=>{
+        const d=an.domTotals[dk];
+        const pct=d&&d.m?Math.round(d.s/d.m*100):null;
+        return h`<div class="chart-row" key=${dk}>
+         <div class="chart-lbl"><span>${dn}</span><span>${pct!==null?pct+'%':'sem dados'}</span></div>
+         <div class=${'bar '+(pct===null?'':pct<50?'err':pct>=70?'ok':'warn')}><i style=${{width:(pct||0)+'%'}}></i></div>
+        </div>`;
+       })}
+      </div>
+      <h3 style="margin-top:20px;font-size:15px">Distribuição de Notas Finais</h3>
+      <div class="histo">
+       ${an.dist.map(d=>h`<div class="hcol" key=${d.lab}>
+        <span style="font-size:12px;font-weight:700">${d.cnt}</span>
+        <div class=${'hbar '+d.cls} style=${{height:Math.round((d.cnt/maxHisto)*100)+'%'}} title=${d.sub+': '+d.cnt+' aluno(s)'}></div>
+        <span style="font-size:11px;font-weight:600">${d.lab}</span>
+       </div>`)}
+      </div>
+     </section>
+    </div>
+   </div>`}
+  </div>`}
+
+  ${tab==='list'&&h`<section class="sec">
+   <div class="row" style="justify-content:space-between;align-items:center">
+    <h3>${c.name} — Pauta de Alunos</h3>
+    <div class="row">
+     ${!sts.length&&h`<button class="btn g s" onClick=${loadDemoData}><${Ico} n="spark" s=${14}/> Preencher turma de exemplo</button>`}
+     ${cls.length>1&&h`<button class="btn k s" onClick=${()=>{if(confirm('Remover a turma '+c.name+'?')){setCls(cls.filter((_,i)=>i!==idx));setCi(0)}}}><${Ico} n="trash" s=${14}/> Remover turma</button>`}
+    </div>
+   </div>
+   ${sts.length?h`<div class="tw"><table><thead><tr><th>N.º</th><th>Aluno</th><th>Nota (0–20)</th><th>Pauta (Inovar/GIAE)</th><th>Situação</th><th></th></tr></thead><tbody>${sts.map((s,i)=>{
+    const v=s.nota!=null&&s.nota!==''?+s.nota:null;
+    return h`<tr key=${s.id}>
+     <td style="width:44px" class="mu"><b>${i+1}</b></td>
+     <td><div class="who"><span class="av">${ini(s.name)}</span><input aria-label="Nome do aluno" value=${s.name} onInput=${e=>setS(s.id,{name:e.target.value})}/></div></td>
+     <td><input class="nota" aria-label=${'Nota de '+s.name} type="number" min="0" max="20" step="0.1" placeholder="—" value=${s.nota??''} onInput=${e=>setS(s.id,{nota:e.target.value})}/></td>
+     <td><b>${v!==null?Math.round(v):'—'}</b></td>
+     <td>${v===null?h`<span class="chip">Pendente</span>`:v>=9.5?h`<span class="chip ok">Aprovado</span>`:h`<span class="chip err">Em risco</span>`}</td>
+     <td class="ta"><button class="ibtn" aria-label=${'Remover '+s.name} onClick=${()=>upd(x=>({...x,students:x.students.filter(y=>y.id!==s.id)}))}><${Ico} n="trash"/></button></td>
+    </tr>`;
+   })}</tbody></table></div>`
+   :h`<div class="empty"><div class="fic"><${Ico} n="users" s=${26}/></div><h3>Ainda não há alunos</h3><p>Adiciona o primeiro abaixo, cola uma lista de nomes ou carrega os dados de demonstração.</p></div>`}
    <div class="row" style="margin-top:16px"><div class="grow"><label for="na">Novo aluno</label><input id="na" placeholder="Nome do aluno" value=${nm} onInput=${e=>setNm(e.target.value)} onKeyDown=${enter(addS)}/></div><button class="btn" onClick=${addS}><${Ico} n="plus" s=${16}/> Aluno</button></div>
    <details class="adv"><summary>Adicionar vários alunos de uma vez</summary><div><label for="nb">Um nome por linha</label><textarea id="nb" style=${{minHeight:'90px'}} value=${bulk} onInput=${e=>setBulk(e.target.value)} placeholder=${'Ana Silva\nBruno Costa'}></textarea><p style="margin-top:8px"><button class="btn s" onClick=${addB}>Adicionar lista</button></p></div></details>
-  </section></div>`}</div>`;
+  </section>`}
+ </div>`}</div>`;
 }
 
 /* ===== Testes ===== */
-function Tests({tests,setTests,cls,setTid,go}){
+function Tests({tests,setTests,cls,setTid,go,m,crit}){
  const nw=()=>{setTid(null);go('corr')};
- return h`<div><div class="ph"><div><h1>Testes e exames</h1><p class="mu">Os testes criados em Correção aparecem aqui, com a turma associada e a média (0–20).</p></div><button class="btn" onClick=${nw}><${Ico} n="plus" s=${16}/> Novo teste</button></div>
- ${!tests.length&&h`<div class="sec empty"><div class="fic"><${Ico} n="file" s=${26}/></div><h3>Ainda não há testes</h3><p>Larga o PDF de um teste e a FALPD separa grupos e questões.</p><p style="margin-top:14px"><button class="btn" onClick=${nw}>Criar o primeiro teste</button></p></div>`}
+ return h`<div class="page-anim"><div class="ph"><div><h1>Testes e exames</h1><p class="mu">Os testes criados em Correção aparecem aqui, com a turma associada, média (0–20) e exportação direta para Excel/CSV.</p></div><button class="btn" onClick=${nw}><${Ico} n="plus" s=${16}/> Novo teste</button></div>
+ ${!tests.length&&h`<div class="sec empty"><div class="fic"><${Ico} n="file" s=${26}/></div><h3>Ainda não há testes</h3><p>Larga o PDF de um teste e a FALPD separa grupos, questões e respostas-modelo.</p><p style="margin-top:14px"><button class="btn" onClick=${nw}>Criar o primeiro teste</button></p></div>`}
  <div class="grid">${tests.map(t=>{const c=cls.find(k=>k.id===t.classId),gs=Object.entries(t.grades||{}),tot=c?c.students.length:0,avg=gs.length?(gs.reduce((a,[,g])=>a+gn(g),0)/gs.length).toFixed(1):'—',pc=tot?Math.min(100,Math.round(gs.length/tot*100)):0;
+  const modCount=(t.groups||[]).flatMap(g=>g.qs).filter(q=>q.model&&q.model.trim()).length;
+  const totQ=(t.groups||[]).flatMap(g=>g.qs).length;
   return h`<div class="card" key=${t.id}><h3 style="font-size:18px;margin-top:0">${t.name}</h3>
-  <div class="chips" style="margin:8px 0 14px"><span class="chip">${c?c.name:'Turma removida'}</span><span class="chip">${t.author||'sem autor'}</span><span class="chip">${t.date}</span></div>
+  <div class="chips" style="margin:8px 0 14px"><span class="chip">${c?c.name:'Turma removida'}</span><span class="chip">${t.author||'sem autor'}</span><span class="chip">${t.date}</span><span class="chip ok">${modCount}/${totQ} resp. modelo</span></div>
   <div class="row" style="align-items:baseline"><span class="score">${avg}</span><span class="mu">média da turma</span></div>
   <div class="pbar" style="margin:12px 0 4px"><i style=${{width:pc+'%'}}></i></div><span class="mu">${gs.length} de ${tot} alunos corrigidos</span>
   ${gs.length>0&&h`<details class="adv"><summary>Ver notas</summary><div class="tw"><table><tbody>${gs.map(([sid,g])=>{const s=c&&c.students.find(x=>String(x.id)===sid);return h`<tr key=${sid}><td>${s?s.name:'—'}</td><td class="ta" style="width:80px"><b>${gn(g).toFixed(1)}</b></td></tr>`})}</tbody></table></div></details>`}
-  <div class="row" style="margin-top:14px"><button class="btn s" onClick=${()=>{setTid(t.id);go('corr')}}>Corrigir</button><button class="btn k s" onClick=${()=>{if(confirm('Remover o teste «'+t.name+'»?'))setTests(tests.filter(o=>o.id!==t.id))}}>Remover</button></div></div>`})}</div></div>`;
+  <div class="row" style="margin-top:14px">
+   <button class="btn s" onClick=${()=>{setTid(t.id);go('corr')}}>Corrigir / Lote</button>
+   ${c&&h`<button class="btn g s" onClick=${()=>exportClassExcel(c,computeClassAnalytics(c,tests,m,crit),t)}><${Ico} n="down" s=${14}/> Excel</button>`}
+   <button class="btn k s" onClick=${()=>{if(confirm('Remover o teste «'+t.name+'»?'))setTests(tests.filter(o=>o.id!==t.id))}}>Remover</button>
+  </div>
+ </div>`})}</div></div>`;
 }
 
-/* ===== Novo teste (3 secções) ===== */
+/* ===== Novo teste (3 secções + deteção de respostas-modelo) ===== */
 function NewTest({cls,tests,onCreate}){
- const[n,setN]=useState(''),[ci,setCi]=useState(cls[0]?cls[0].id:0),[au,setAu]=useState(''),[cx,setCx]=useState([]),[tp,setTp]=useState([]),[re,setRe]=useState(true);
+ const[n,setN]=useState(''),[ci,setCi]=useState(cls[0]?cls[0].id:0),[au,setAu]=useState(''),[cx,setCx]=useState([]),[tp,setTp]=useState([]),[mp,setMp]=useState([]),[re,setRe]=useState(true);
  const authors=[...new Set(tests.map(t=>t.author).filter(Boolean))];
  const prev=au.trim()?tests.filter(t=>norm(t.author)===norm(au)).reduce((a,t)=>a+t.ctx.length,0):0;
  const ok=n.trim()&&cls.length;
- return h`<div>
+
+ /* Pré-analisa o PDF carregado para informar quantas questões e respostas-modelo foram identificadas */
+ const parsedPreview=tp[0]?parseTest(tp[0].text+(mp[0]?'\nCRITÉRIOS ESPECÍFICOS DE CLASSIFICAÇÃO\n'+mp[0].text:'')):[];
+ const previewQs=parsedPreview.flatMap(g=>g.qs);
+ const previewModels=previewQs.filter(q=>q.model&&q.model.trim()).length;
+
+ return h`<div class="page-anim">
  <section class="sec"><div class="sh"><span class="sn">1</span><div><h3>Informação do teste</h3><p class="mu">Dá-lhe um nome e associa a turma.</p></div></div>
   <div class="fields"><div><label for="tn">Nome do teste</label><input id="tn" value=${n} onInput=${e=>setN(e.target.value)} placeholder="Ex.: Teste 2 — Os Lusíadas"/></div>
   <div><label for="tc">Turma associada</label><select id="tc" value=${ci} onChange=${e=>setCi(+e.target.value)}>${cls.map(k=>h`<option key=${k.id} value=${k.id}>${k.name}</option>`)}</select></div>
   <div><label for="ta">Autor</label><input id="ta" list="aut" value=${au} onInput=${e=>setAu(e.target.value)} placeholder="Ex.: Luís de Camões"/><datalist id="aut">${authors.map(a=>h`<option key=${a} value=${a}/>`)}</datalist></div></div>
   ${!cls.length&&h`<div class="note err">Cria primeiro uma turma em «Turmas».</div>`}</section>
- <section class="sec"><div class="sh"><span class="sn">2</span><div><h3>PDF do teste ou exame <span class="chip">opcional</span></h3><p class="mu">A FALPD separa grupos e questões. Sem PDF, crias a estrutura à mão.</p></div></div>
-  <${PdfInput} title="Larga aqui o PDF do teste" hint="ou clica para escolher · um ficheiro" items=${tp} onAdd=${d=>setTp([d])} onDel=${()=>setTp([])}/></section>
+
+ <section class="sec"><div class="sh"><span class="sn">2</span><div><h3>PDF do teste e Respostas-Modelo <span class="chip">deteção automática</span></h3><p class="mu">A FALPD separa grupos e questões. Se o PDF incluir respostas-modelo ou critérios de correção, o modelo identifica-os automaticamente!</p></div></div>
+  <${PdfInput} title="Larga aqui o PDF do teste (com ou sem respostas-modelo)" hint="ou clica para escolher · um ficheiro PDF" items=${tp} onAdd=${d=>setTp([d])} onDel=${()=>setTp([])}/>
+  ${tp.length>0&&h`<div class=${'note '+(previewModels>0?'ok':'')}>
+   <b>Estrutura detetada no PDF:</b> ${parsedPreview.length} grupo(s) · ${previewQs.length} questão(ões) · <b>${previewModels} resposta(s)-modelo identificada(s) automaticamente</b>.
+  </div>`}
+  <details class="adv"><summary>As respostas-modelo estão num ficheiro PDF separado? Carrega aqui (opcional)</summary>
+   <div><${PdfInput} compact=${true} title="Larga o PDF com as Respostas-Modelo / Proposta de Resolução" hint="Associa automaticamente a resposta-modelo a cada questão (1.1, 1.2, 2.1...)" items=${mp} onAdd=${d=>setMp([d])} onDel=${()=>setMp([])}/></div>
+  </details>
+ </section>
+
  <section class="sec"><div class="sh"><span class="sn">3</span><div><h3>Contexto do autor <span class="chip">opcional</span></h3><p class="mu">PDFs de obras do autor: estilo, recursos expressivos e subentendidos. Quantos quiseres.</p></div></div>
   <${PdfInput} multi=${true} title="Larga aqui os PDFs do autor" hint="ou clica para escolher · vários ficheiros" items=${cx} onAdd=${d=>setCx(o=>[...o,d])} onDel=${i=>setCx(o=>o.filter((_,j)=>j!==i))}/>
   ${prev>0&&h`<label class="chk"><input type="checkbox" checked=${re} onChange=${e=>setRe(e.target.checked)}/>Reutilizar ${prev} PDF(s) de contexto de testes anteriores de ${au.trim()}</label>`}</section>
- <div class="row" style="margin-top:20px;align-items:center"><button class="btn lg" disabled=${!ok} onClick=${()=>onCreate({id:Date.now(),name:n.trim(),classId:ci,author:au.trim(),ctx:cx,paper:tp[0]||null,groups:tp[0]?parseTest(tp[0].text):[],answers:{},reuse:re,grades:{},date:new Date().toLocaleDateString('pt-PT')})}>Criar teste e começar a corrigir</button>
+
+ <div class="row" style="margin-top:20px;align-items:center"><button class="btn lg" disabled=${!ok} onClick=${()=>onCreate({id:Date.now(),name:n.trim(),classId:ci,author:au.trim(),ctx:cx,paper:tp[0]||null,groups:parsedPreview,answers:{},reuse:re,grades:{},date:new Date().toLocaleDateString('pt-PT')})}>Criar teste e começar a corrigir</button>
   ${!ok&&h`<span class="mu">${cls.length?'Dá um nome ao teste para continuar.':''}</span>`}</div></div>`;
 }
 
@@ -536,27 +1200,30 @@ function EnginePanel({db,dbm,onDict,eb,ebm,onEmb,llm,setLlm}){
  return h`<details class="sec eng"><summary><span class="sum-t"><${Ico} n="spark" s=${18}/> Motor de análise</span>
   <span class="chips"><span class="chip ok">✔ Pontuação</span>${chip(db==='ok','Dicionário')}${chip(eb==='ok','Semântica')}${chip(!!llm.key,'2.ª opinião')}</span></summary>
   <div class="engrid">
-   <div class="ec"><div class="ech"><b>Dicionário</b>${stt(db)}</div><p class="mu">A pontuação é sempre verificada com regras. O dicionário (~1,5 MB) acrescenta a ortografia. Não deteta erros de concordância e pode apontar casos legítimos: os avisos servem para rever.</p>
-    <div><button class="btn s" disabled=${db==='load'||db==='ok'} onClick=${onDict}>${db==='ok'?'Dicionário carregado':db==='load'?'A carregar…':'Ativar dicionário'}</button></div>${dbm&&h`<div class="note err">${dbm}</div>`}</div>
-   <div class="ec"><div class="ech"><b>Análise semântica local</b>${stt(eb)}</div><p class="mu">Um pequeno modelo (~120 MB) mede a proximidade de sentido entre frases, mesmo com palavras diferentes. Corre neste navegador e não é um LLM. Não distingue bem figuras de estilo parecidas: para isso servem os elementos essenciais.</p>
-    <div><button class="btn s" disabled=${eb==='load'||eb==='ok'} onClick=${onEmb}>${eb==='ok'?'Modelo carregado':eb==='load'?'A carregar…':'Ativar análise semântica'}</button></div>${ebm&&h`<div class="note ${eb==='err'?'err':''}">${ebm}</div>`}</div>
-   <div class="ec"><div class="ech"><b>Segunda opinião (LLM)</b>${llm.key?h`<span class="chip ok">chave definida</span>`:h`<span class="chip">opcional</span>`}</div>
-    <div class="fields"><div><label for="lp">Fornecedor</label><select id="lp" value=${llm.prov} onChange=${e=>setLlm({...llm,prov:e.target.value})}><option value="gemini">Gemini (chave gratuita do AI Studio)</option><option value="claude">Claude (Anthropic)</option></select></div>
-    <div><label for="lk">Chave da API</label><input id="lk" type="password" autocomplete="off" value=${llm.key} onInput=${e=>setLlm({...llm,key:e.target.value})}/></div>
-    <div><label for="lm">Modelo (opcional)</label><input id="lm" value=${llm.model} onInput=${e=>setLlm({...llm,model:e.target.value})} placeholder=${llm.prov==='claude'?'claude-sonnet-5-5':'gemini-flash-latest'}/></div></div>
-    <p class="mu">O LLM só sugere uma nota; a nota final é sempre tua. São enviados ao fornecedor: critérios de Português, teste, contexto, resposta-modelo e resposta do aluno (sem nomes). A chave fica só neste navegador.</p></div>
+  <div class="ec"><div class="ech"><b>Dicionário</b>${stt(db)}</div><p class="mu">A pontuação é sempre verificada com regras. O dicionário (~1,5 MB) acrescenta a ortografia. Não deteta erros de concordância e pode apontar casos legítimos: os avisos servem para rever.</p>
+  <div><button class="btn s" disabled=${db==='load'||db==='ok'} onClick=${onDict}>${db==='ok'?'Dicionário carregado':db==='load'?'A carregar…':'Ativar dicionário'}</button></div>${dbm&&h`<div class="note err">${dbm}</div>`}</div>
+  <div class="ec"><div class="ech"><b>Análise semântica local</b>${stt(eb)}</div><p class="mu">Um pequeno modelo (~120 MB) mede a proximidade de sentido entre frases, mesmo com palavras diferentes. Corre neste navegador e não é um LLM. Não distingue bem figuras de estilo parecidas: para isso servem os elementos essenciais.</p>
+  <div><button class="btn s" disabled=${eb==='load'||eb==='ok'} onClick=${onEmb}>${eb==='ok'?'Modelo carregado':eb==='load'?'A carregar…':'Ativar análise semântica'}</button></div>${ebm&&h`<div class="note ${eb==='err'?'err':''}">${ebm}</div>`}</div>
+  <div class="ec"><div class="ech"><b>Segunda opinião (LLM)</b>${llm.key?h`<span class="chip ok">chave definida</span>`:h`<span class="chip">opcional</span>`}</div>
+  <div class="fields"><div><label for="lp">Fornecedor</label><select id="lp" value=${llm.prov} onChange=${e=>setLlm({...llm,prov:e.target.value})}><option value="gemini">Gemini (chave gratuita do AI Studio)</option><option value="claude">Claude (Anthropic)</option></select></div>
+  <div><label for="lk">Chave da API</label><input id="lk" type="password" autocomplete="off" value=${llm.key} onInput=${e=>setLlm({...llm,key:e.target.value})}/></div>
+  <div><label for="lm">Modelo (opcional)</label><input id="lm" value=${llm.model} onInput=${e=>setLlm({...llm,model:e.target.value})} placeholder=${llm.prov==='claude'?'claude-sonnet-4-5':'gemini-flash-latest'}/></div></div>
+  <p class="mu">O LLM só sugere uma nota; a nota final é sempre tua. São enviados ao fornecedor: critérios de Português, teste, contexto, resposta-modelo e resposta do aluno (sem nomes). A chave fica só neste navegador.</p></div>
   </div></details>`;
 }
 
-/* ===== Correção ===== */
-function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,setTid}){
+/* ===== Correção + Importação em Lote (Batch Upload) ===== */
+function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,setTid,go}){
  const t=tests.find(x=>x.id===tid);
  const[si,setSi]=useState(''),[ed,setEd]=useState(false),[rs,setRs]=useState({}),[saved,setSaved]=useState(false),[busy,setBusy]=useState(false),[err,setErr]=useState(''),[eb,setEb]=useState(EMB.ext?'ok':'off'),[ebm,setEbm]=useState('');
+ const[batchFiles,setBatchFiles]=useState([]),[batchItems,setBatchItems]=useState([]),[batchMsg,setBatchMsg]=useState('');
+
  const onEmb=async()=>{setEb('load');setEbm('A preparar…');try{await loadEmb(setEbm);setEb('ok');setEbm('');try{localStorage.setItem('phalpd_emb','1')}catch(e){}}catch(e){setEb('err');setEbm('Não foi possível carregar o modelo ('+(e.message||e)+'). Só funciona na versão alojada (https) e com internet.')}};
  useEffect(()=>{try{if(!EMB.ext&&localStorage.getItem('phalpd_emb')==='1')onEmb()}catch(e){}},[]);
  const[db,setDb]=useState(DICT.sp?'ok':'off'),[dbm,setDbm]=useState('');
  const onDict=async()=>{setDb('load');setDbm('A preparar…');try{await loadDict(setDbm);setDb('ok');setDbm('');try{localStorage.setItem('phalpd_dic','1')}catch(e){}}catch(e){setDb('err');setDbm('Não foi possível carregar o dicionário ('+(e.message||e)+'). Só funciona na versão alojada (https) e com internet.')}};
  useEffect(()=>{try{if(!DICT.sp&&localStorage.getItem('phalpd_dic')==='1')onDict()}catch(e){}},[]);
+
  const c=t&&cls.find(k=>k.id===t.classId),ctx=t?ctxOf(t,tests):'',G=(t&&t.groups)||[],AQ=G.flatMap(g=>g.qs.map(q=>({g,q})));
  const extra=t&&t.reuse?tests.filter(o=>o.id!==t.id&&norm(o.author)===norm(t.author)).reduce((a,o)=>a+o.ctx.length,0):0;
  const upT=f=>setTests(tests.map(o=>o.id===t.id?f(o):o));
@@ -569,86 +1236,204 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
  const mix=(a,b)=>Math.round(((1-lam)*a+lam*b)*2)/2;
  const cf=(es,el)=>{const cx=[];(el||[]).forEach(z=>{const nz=norm(z.nome);const it=es.find(i=>{const ni=norm(i.lab);return ni&&(nz.includes(ni)||ni.includes(nz))});if(it&&it.hit!==z.presente)cx.push(it.lab)});return cx};
  const fin=e=>e.tg!=null?e.tg:e.prop;
+
  const run=async()=>{setBusy(true);const r={},known=new Set(norm([t.paper?t.paper.text:'',ctx,...G.map(g=>g.intro+' '+g.qs.map(q=>q.text+' '+q.model).join(' '))].join(' ')).match(/[a-z]{3,}/g)||[]);
   for(const{g,q}of AQ){const a=ans(q.id);if(q.model&&q.model.trim()&&a.trim()){const d=qdom(q),ess=essOf(q);let sem=null;if(EMB.ext){try{sem=await semOf(a,q.model,ess)}catch(e){}}
-   const lg=lingua(a,known),x=feats(a,q.model,ctx+' '+g.intro,critDom(crit,d),ess,sem,lg,rangeOf(q.text)),e=Math.round(pred(m[d],x)*q.max*2)/2,na=norm(a);
-   r[q.id]={x,d,eng:e,llm:null,tg:null,prop:e,tin:'',es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>na.includes(z))||!!(sem&&sem.hit[it.lab])})),wrong:x[11],sm:!!sem,lg:{es:lg.es,ps:lg.ps}}}}
+  const lg=lingua(a,known),x=feats(a,q.model,ctx+' '+g.intro,critDom(crit,d),ess,sem,lg,rangeOf(q.text)),e=Math.round(pred(m[d],x)*q.max*2)/2,na=norm(a);
+  r[q.id]={x,d,eng:e,llm:null,tg:null,prop:e,tin:'',es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>na.includes(z))||!!(sem&&sem.hit[it.lab])})),wrong:x[11],sm:!!sem,lg:{es:lg.es,ps:lg.ps}}}}
   setRs(r);setSaved(false);setBusy(false);setErr(Object.keys(r).length?'':'Preenche a resposta-modelo e a resposta do aluno em pelo menos uma questão.')};
+
  const ask=async()=>{if(!llm.key){setErr('Define a chave da API em «Motor de análise → Segunda opinião».');return}setBusy(true);setErr('');const r={...rs};
   for(const{g,q}of AQ){const e=rs[q.id];if(!e)continue;try{const o=await opinion(llm,{crit:critDom(crit,e.d),paper:t.paper?t.paper.text:'',ctx,intro:g.intro,q,ans:ans(q.id),ess:essOf(q).map(i=>i.lab).join('; ')});r[q.id]={...e,llm:o,prop:mix(e.eng,o.nota),cx:cf(e.es,o.el)};setRs({...r})}catch(x){setErr('Erro da API: '+x.message);break}}
   setBusy(false)};
+
  const reg=qid=>{const e=rs[qid],q=AQ.find(a=>a.q.id===qid).q,v=e.tin!==''?+e.tin:e.prop;if(isNaN(v))return;const g=Math.max(0,Math.min(q.max,v));
   setM({...m,[e.d]:train(m[e.d],e.x,g/q.max)});
   setSt({ok:(st.ok||0)+(Math.abs(e.eng-g)<=.1*q.max?1:0),n:st.n+1,eE:(st.eE*st.n+Math.abs(e.eng-g)/q.max)/(st.n+1),nl:st.nl+(e.llm?1:0),eL:e.llm?(st.eL*st.nl+Math.abs(e.llm.nota-g)/q.max)/(st.nl+1):st.eL});
   setRs({...rs,[qid]:{...e,tg:g}});setSaved(false)};
+
  const ev=AQ.filter(({q})=>rs[q.id]),P=ev.reduce((a,{q})=>a+fin(rs[q.id]),0),M=ev.reduce((a,{q})=>a+q.max,0),pend=ev.some(({q})=>rs[q.id].tg==null);
- const save=()=>{const nt=(P/M*20).toFixed(1);setCls(cls.map(k=>k.id===t.classId?{...k,students:k.students.map(s=>String(s.id)===si?{...s,nota:nt}:s)}:k));upT(o=>({...o,grades:{...o.grades,[si]:{p:P,m:M}}}));setSaved(true)};
- const rp=()=>upT(o=>{const old=o.groups||[];return{...o,groups:parseTest(o.paper.text).map(g=>({...g,qs:g.qs.map(q=>{const og=old.find(x=>x.name===g.name),oq=og&&og.qs.find(x=>x.label===q.label);return oq?{...q,model:oq.model,max:oq.max}:q})}))}});
+
+ /* Guarda a nota global e o detalhe por questão para o Dashboard de Análise Estatística da Turma */
+ const save=()=>{
+  const nt=(P/M*20).toFixed(1);
+  const qsDetail=Object.fromEntries(ev.map(({q})=>[q.id,{p:fin(rs[q.id]),m:q.max,dom:rs[q.id].d,es:rs[q.id].es,wrong:rs[q.id].wrong}]));
+  setCls(cls.map(k=>k.id===t.classId?{...k,students:k.students.map(s=>String(s.id)===si?{...s,nota:nt}:s)}:k));
+  upT(o=>({...o,grades:{...o.grades,[si]:{p:P,m:M,qs:qsDetail}}}));
+  setSaved(true);
+ };
+
+ const rp=()=>upT(o=>{const old=o.groups||[];return{...o,groups:parseTest(o.paper.text).map(g=>({...g,qs:g.qs.map(q=>{const og=old.find(x=>x.name===g.name),oq=og&&og.qs.find(x=>x.label===q.label);return oq?{...q,model:q.model||oq.model,max:oq.max}:q})}))}});
+
+ /* Importar PDF de Respostas-Modelo em separado */
+ const onImportModels=d=>{
+  const map=extractModelMap(d.text);
+  const count=Object.keys(map).length;
+  if(count>0){
+   upT(o=>({...o,groups:o.groups.map(g=>({...g,qs:g.qs.map(q=>map[q.label]?{...q,model:map[q.label]}:q)}))}));
+   setBatchMsg(`✔ ${count} resposta(s)-modelo associada(s) automaticamente às questões!`);
+  }else{
+   setBatchMsg('Não foram encontradas respostas numeradas (ex.: 1.1., 1.2.) no PDF carregado.');
+  }
+ };
+
+ /* Adicionar ficheiros ao Batch Upload de Respostas de Alunos */
+ const onAddBatchFile=d=>{
+  const next=[...batchFiles,d];
+  setBatchFiles(next);
+  const parsed=parseBatchFiles(next,c?c.students:[],AQ);
+  setBatchItems(parsed);
+  setBatchMsg('');
+ };
+
+ const applyBatch=(evaluateAll)=>{
+  if(!batchItems.length)return;
+  const newAns={...(t.answers||{})};
+  const newGrades={...(t.grades||{})};
+  const studentGradesMap={};
+  const known=new Set(norm([t.paper?t.paper.text:'',ctx,...G.map(g=>g.intro+' '+g.qs.map(q=>q.text+' '+q.model).join(' '))].join(' ')).match(/[a-z]{3,}/g)||[]);
+
+  batchItems.forEach(item=>{
+   const targetSid=item.studentId||si;
+   if(!targetSid)return;
+   newAns[targetSid]={...(newAns[targetSid]||{}),...item.qMap};
+   if(evaluateAll){
+    let pSum=0,mSum=0;const qsDetail={};
+    AQ.forEach(({g,q})=>{
+     const a=(newAns[targetSid]||{})[q.id]||'';
+     if(q.model&&q.model.trim()&&a.trim()){
+      const d=qdom(q),ess=essOf(q),lg=lingua(a,known),x=feats(a,q.model,ctx+' '+g.intro,critDom(crit,d),ess,null,lg,rangeOf(q.text));
+      const sc=Math.round(pred(m[d],x)*q.max*2)/2,na=norm(a);
+      pSum+=sc;mSum+=q.max;
+      qsDetail[q.id]={p:sc,m:q.max,dom:d,es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>na.includes(z))})),wrong:x[11]};
+     }
+    });
+    if(mSum>0){
+     newGrades[targetSid]={p:pSum,m:mSum,qs:qsDetail};
+     studentGradesMap[targetSid]=(pSum/mSum*20).toFixed(1);
+    }
+   }
+  });
+
+  upT(o=>({...o,answers:newAns,grades:newGrades}));
+  if(evaluateAll&&Object.keys(studentGradesMap).length){
+   setCls(cls.map(k=>k.id===t.classId?{...k,students:k.students.map(s=>studentGradesMap[String(s.id)]?{...s,nota:studentGradesMap[String(s.id)]}:s)}:k));
+  }
+  if(batchItems[0]&&batchItems[0].studentId)setSi(batchItems[0].studentId);
+  setBatchMsg(evaluateAll?`✔ Respostas importadas e ${Object.keys(studentGradesMap).length} aluno(s) avaliado(s) em lote com sucesso!`:'✔ Respostas importadas para os alunos selecionados!');
+ };
+
  const withModel=AQ.filter(({q})=>q.model&&q.model.trim()).length;
  const goQ=id=>{const e=document.getElementById('q-'+id);e&&e.scrollIntoView({behavior:'smooth',block:'start'})};
  const qs=q=>{const r=rs[q.id];return r?(r.tg!=null?'dn':'ev'):''};
 
  const Res=(q,r)=>h`<div class="res">
   <div class="rtop"><div><span class="score">${fin(r)}</span> <span class="of">/ ${q.max}</span></div>
-   <div class="chips">${r.tg!=null?h`<span class="chip ok">✔ Nota registada</span>`:h`<span class="chip or">Proposta · por confirmar</span>`}
-    <span class="chip">Motor ${r.eng}</span>${r.llm&&h`<span class="chip">LLM ${r.llm.nota} · proposta ${r.prop}</span>`}${r.sm&&h`<span class="chip">semântica</span>`}
-    ${r.llm&&Math.abs(r.eng-r.llm.nota)/q.max>.25&&h`<span class="chip warn">divergência — rever</span>`}</div></div>
+  <div class="chips">${r.tg!=null?h`<span class="chip ok">✔ Nota registada</span>`:h`<span class="chip or">Proposta · por confirmar</span>`}
+  <span class="chip">Motor ${r.eng}</span>${r.llm&&h`<span class="chip">LLM ${r.llm.nota} · proposta ${r.prop}</span>`}${r.sm&&h`<span class="chip">semântica</span>`}
+  ${r.llm&&Math.abs(r.eng-r.llm.nota)/q.max>.25&&h`<span class="chip warn">divergência — rever</span>`}</div></div>
   ${r.llm&&h`<p><b>2.ª opinião:</b> ${r.llm.just}</p>`}
   ${(r.es.length>0||r.wrong>0)&&h`<div style="margin-top:12px"><label>Elementos essenciais</label><div class="chips">${r.es.map(e=>h`<span key=${e.lab} class=${'chip '+(e.hit?'ok':'err')}>${e.hit?'✔ ':'✘ '}${e.lab}</span>`)}${r.wrong?h`<span class="chip warn">figura de estilo diferente da do modelo</span>`:null}</div></div>`}
   ${r.llm&&h`<p class="ll">${r.cx.length?'⚠ Motor e LLM discordam em: '+r.cx.join(', ')+' — rever com atenção.':'Motor e LLM concordam nos elementos verificados.'}${r.llm.el.length?' · LLM: '+r.llm.el.map(z=>(z.presente?'✔ ':'✘ ')+z.nome).join(' · '):''}</p>`}
   <div class="grade"><div class="grow"><label for=${'tin-'+q.id}>A tua nota (proposta ${r.prop})</label><input id=${'tin-'+q.id} type="number" step="0.5" min="0" max=${q.max} placeholder=${'Vazio = aceitar '+r.prop} value=${r.tin} onInput=${e=>setRs({...rs,[q.id]:{...r,tin:e.target.value}})}/></div>
-   <button class="btn" onClick=${()=>reg(q.id)}>${r.tg!=null?'Registar de novo':'Registar nota'}</button></div>
+  <button class="btn" onClick=${()=>reg(q.id)}>${r.tg!=null?'Registar de novo':'Registar nota'}</button></div>
   ${r.lg&&(r.lg.es.length+r.lg.ps.length>0)&&h`<details class="adv"><summary>Correção linguística: ${r.lg.es.length} de ortografia · ${r.lg.ps.length} de pontuação (para rever)</summary><div>${[...r.lg.es,...r.lg.ps].slice(0,25).map((e,i)=>h`<div key=${i} class="mu">• ${e.soft?'(aviso) ':''}${e.msg} <i>${e.ctx}</i></div>`)}</div></details>`}
   <details class="adv"><summary>Parâmetros do motor (${FN.length})</summary><div class="params">${FN.map((f,i)=>h`<div key=${f}><div class="pl"><span>${f}</span><span>peso ${m[r.d].w[i].toFixed(2)}</span></div><div class="bar"><i style=${{width:Math.round(Math.max(0,Math.min(1,r.x[i]))*100)+'%'}}></i></div></div>`)}</div></details></div>`;
 
  const Q=(g,q)=>{const r=rs[q.id],a=si?ans(q.id):'',rg=rangeOf(q.text),noM=!(q.model&&q.model.trim());
   return h`<article class="q" id=${'q-'+q.id} key=${q.id}>
   <div class="qh">${ed?h`<input class="qlab" aria-label="Número da questão" value=${q.label} onInput=${e=>upQ(g.id,q.id,{label:e.target.value})}/>`:h`<span class="qbadge">Questão ${q.label}</span>`}
-   ${r?(r.tg!=null?h`<span class="chip ok">Nota registada</span>`:h`<span class="chip or">Proposta por confirmar</span>`):noM?h`<span class="chip warn">Falta resposta-modelo</span>`:null}
-   <div class="qmeta"><label class="inl">Cotação <input type="number" min="1" value=${q.max} onInput=${e=>upQ(g.id,q.id,{max:+e.target.value||1})}/> pts</label>
-    <label class="inl">Domínio <select value=${qdom(q)} onChange=${e=>upQ(g.id,q.id,{dom:e.target.value})}>${Object.entries(DOMN).map(([k,v])=>h`<option key=${k} value=${k}>${v}</option>`)}</select></label>
-    ${ed&&h`<button class="btn k s" onClick=${()=>upG(g.id,{qs:g.qs.filter(x=>x.id!==q.id)})}>Remover</button>`}</div></div>
+  ${r?(r.tg!=null?h`<span class="chip ok">Nota registada</span>`:h`<span class="chip or">Proposta por confirmar</span>`):noM?h`<span class="chip warn">Falta resposta-modelo</span>`:h`<span class="chip ok">✔ Modelo pronto</span>`}
+  <div class="qmeta"><label class="inl">Cotação <input type="number" min="1" value=${q.max} onInput=${e=>upQ(g.id,q.id,{max:+e.target.value||1})}/> pts</label>
+  <label class="inl">Domínio <select value=${qdom(q)} onChange=${e=>upQ(g.id,q.id,{dom:e.target.value})}>${Object.entries(DOMN).map(([k,v])=>h`<option key=${k} value=${k}>${v}</option>`)}</select></label>
+  ${ed&&h`<button class="btn k s" onClick=${()=>upG(g.id,{qs:g.qs.filter(x=>x.id!==q.id)})}>Remover</button>`}</div></div>
   <div class="qb">
-   ${ed?h`<div><label>Enunciado</label><textarea value=${q.text} onInput=${e=>upQ(g.id,q.id,{text:e.target.value})}></textarea></div>`:h`<${Clamp} text=${q.text}/>`}
-   <div class="two"><div><div class="lh"><label for=${'m-'+q.id}>Resposta-modelo</label><span>igual para todos os alunos</span></div><textarea id=${'m-'+q.id} value=${q.model} onInput=${e=>upQ(g.id,q.id,{model:e.target.value})}></textarea></div>
-    <div><div class="lh"><label for=${'a-'+q.id}>Resposta do aluno</label>${si&&h`<span>${wc(a)} palavras${rg?' · pedidas '+rg[0]+'–'+rg[1]:''}</span>`}</div>
-     ${si?h`<textarea id=${'a-'+q.id} value=${a} onInput=${e=>setAns(q.id,e.target.value)} placeholder="Cola ou escreve a resposta"></textarea>`:h`<div class="note">Escolhe um aluno na barra acima para escrever a resposta.</div>`}</div></div>
-   <details class="adv" open=${!!q.chave}><summary>Elementos essenciais (opcional)</summary><p class="mu">Um por linha; sinónimos com | ; peso com :: (ex.: comparação | símile :: 3). Se estiver vazio, usa as figuras de estilo da resposta-modelo.</p>
-    <textarea style=${{minHeight:'70px'}} value=${q.chave||''} onInput=${e=>upQ(g.id,q.id,{chave:e.target.value})}></textarea></details>
-   ${r&&Res(q,r)}</div></article>`};
+  ${ed?h`<div><label>Enunciado</label><textarea value=${q.text} onInput=${e=>upQ(g.id,q.id,{text:e.target.value})}></textarea></div>`:h`<${Clamp} text=${q.text}/>`}
+  <div class="two"><div><div class="lh"><label for=${'m-'+q.id}>Resposta-modelo</label><span>igual para todos os alunos</span></div><textarea id=${'m-'+q.id} value=${q.model} onInput=${e=>upQ(g.id,q.id,{model:e.target.value})} placeholder="Escreve ou importa automaticamente do PDF..."></textarea></div>
+  <div><div class="lh"><label for=${'a-'+q.id}>Resposta do aluno</label>${si&&h`<span>${wc(a)} palavras${rg?' · pedidas '+rg[0]+'–'+rg[1]:''}</span>`}</div>
+  ${si?h`<textarea id=${'a-'+q.id} value=${a} onInput=${e=>setAns(q.id,e.target.value)} placeholder="Cola a resposta ou usa a Importação em Lote acima"></textarea>`:h`<div class="note">Escolhe um aluno na barra acima ou faz Importação em Lote de PDFs.</div>`}</div></div>
+  <details class="adv" open=${!!q.chave}><summary>Elementos essenciais (opcional)</summary><p class="mu">Um por linha; sinónimos com | ; peso com :: (ex.: comparação | símile :: 3). Se estiver vazio, usa as figuras de estilo da resposta-modelo.</p>
+  <textarea style=${{minHeight:'70px'}} value=${q.chave||''} onInput=${e=>upQ(g.id,q.id,{chave:e.target.value})}></textarea></details>
+  ${r&&Res(q,r)}</div></article>`};
 
- return h`<div><div class="ph"><div><h1>Correção</h1><p class="mu">Escolhe um teste, escolhe um aluno, cola as respostas e avalia.</p></div></div>
+ return h`<div class="page-anim"><div class="ph"><div><h1>Correção</h1><p class="mu">Escolhe um teste, avalia aluno a aluno ou faz Importação em Lote (Batch Upload) das folhas de resposta em PDF.</p></div>
+  ${t&&c&&h`<div class="exp-bar">
+   <button class="btn g s" onClick=${()=>go('dash')}><${Ico} n="chart" s=${14}/> Ver Estatísticas da Turma</button>
+   <button class="btn ok s" onClick=${()=>exportClassExcel(c,computeClassAnalytics(c,tests,m,crit),t)}><${Ico} n="down" s=${14}/> Exportar Excel (.xls)</button>
+  </div>`}
+ </div>
  <div class="tabs">${tests.map(x=>h`<button key=${x.id} class=${'pill'+(x.id===tid?' on':'')} onClick=${()=>{setTid(x.id);pick('')}}>${x.name}</button>`)}<button class=${'pill add'+(!t?' on':'')} onClick=${()=>setTid(null)}>+ Novo teste</button></div>
  ${!t?h`<${NewTest} cls=${cls} tests=${tests} onCreate=${x=>{setTests([...tests,x]);setTid(x.id)}}/>`:h`<div>
   <section class="sec tinfo"><div class="top2"><div><h2>${t.name}</h2><div class="chips"><span class="chip">${c?c.name:'turma removida'}</span><span class="chip">${t.author||'sem autor'}</span><span class="chip">contexto: ${t.ctx.length} PDF(s)${extra>0?' + '+extra+' reutilizado(s)':''}</span></div></div>
-   <div class="perf"><div class="stat" title="Diferença média entre a proposta do motor e a tua nota, em % da cotação"><b>${st.n?(st.eE*100).toFixed(0)+'%':'—'}</b><span>erro médio do motor</span></div>
-    <div class="stat" title="Propostas dentro de ±10% da cotação"><b>${st.ok||0}/${st.n}</b><span>concordância ±10%</span></div>${st.nl?h`<div class="stat"><b>${(st.eL*100).toFixed(0)}%</b><span>erro do LLM</span></div>`:null}</div></div>
-   ${!crit&&h`<div class="note">Sem critérios carregados (menu Critérios) a precisão desce.</div>`}</section>
+  <div class="perf"><div class="stat" title="Diferença média entre a proposta do motor e a tua nota, em % da cotação"><b>${st.n?(st.eE*100).toFixed(0)+'%':'—'}</b><span>erro médio do motor</span></div>
+  <div class="stat" title="Propostas dentro de ±10% da cotação"><b>${st.ok||0}/${st.n}</b><span>concordância ±10%</span></div>${st.nl?h`<div class="stat"><b>${(st.eL*100).toFixed(0)}%</b><span>erro do LLM</span></div>`:null}</div></div>
+  ${!crit&&h`<div class="note">Sem critérios carregados (menu Critérios) a precisão desce.</div>`}</section>
+
+  <!-- Secção de Importação em Lote (Batch Upload) + Importação de Respostas-Modelo -->
+  <details class="sec eng" open=${batchFiles.length>0}>
+   <summary>
+    <span class="sum-t"><${Ico} n="layers" s=${18}/> Importação em Lote (Batch Upload) — Respostas de Teste Inteiro / Folhas de Resposta</span>
+    <span class="chips"><span class="chip or">PDF único ou vários alunos</span><span class="chip">Auto-separação 1.1, 1.2…</span></span>
+   </summary>
+   <div style="margin-top:14px">
+    <p class="mu" style="margin-bottom:12px">Em vez de colares as respostas uma a uma, carrega um ficheiro PDF com todas as respostas de um teste ou várias folhas de resposta digitalizadas da turma. A FALPD identifica o aluno e distribui as respostas por pergunta.</p>
+    <div class="two">
+     <div>
+      <label>1. Carregar Folhas de Resposta dos Alunos (PDF — um ou vários)</label>
+      <${PdfInput} multi=${true} compact=${true} title="Larga aqui o(s) PDF(s) com as respostas dos alunos" hint="1 PDF por aluno ou 1 PDF com toda a turma" items=${batchFiles} onAdd=${onAddBatchFile} onDel=${i=>{const nf=batchFiles.filter((_,j)=>j!==i);setBatchFiles(nf);setBatchItems(parseBatchFiles(nf,c?c.students:[],AQ))}}/>
+     </div>
+     <div>
+      <label>2. Carregar PDF de Critérios / Respostas-Modelo (se separado)</label>
+      <${PdfInput} multi=${false} compact=${true} title="Extrair respostas-modelo de um PDF" hint="Preenche automaticamente a resposta-modelo de cada questão" items=${[]} onAdd=${onImportModels} onDel=${()=>{}}/>
+     </div>
+    </div>
+
+    ${batchItems.length>0&&h`<div style="margin-top:14px">
+     <div class="tw"><table>
+      <thead><tr><th>Ficheiro / Folha</th><th>Aluno Associado</th><th>Questões Detetadas</th></tr></thead>
+      <tbody>${batchItems.map((it,idx)=>h`<tr key=${it.key}>
+       <td><b>${it.fileName}</b>${it.isScan&&h` <span class="chip warn">digitalização s/ texto</span>`}</td>
+       <td>
+        <select value=${it.studentId} onChange=${e=>setBatchItems(batchItems.map((x,j)=>j===idx?{...x,studentId:e.target.value}:x))}>
+         <option value="">— associar aluno —</option>
+         ${(c?c.students:[]).map(s=>h`<option key=${s.id} value=${String(s.id)}>${s.name}</option>`)}
+        </select>
+       </td>
+       <td><span class="chip ${Object.keys(it.qMap).length?'ok':'warn'}">${Object.keys(it.qMap).length} de ${AQ.length} questões identificadas</span></td>
+      </tr>`)}</tbody>
+     </table></div>
+     <div class="row" style="margin-top:12px">
+      <button class="btn s" onClick=${()=>applyBatch(false)}><${Ico} n="check" s=${14}/> Preencher respostas nos alunos</button>
+      <button class="btn ok s" onClick=${()=>applyBatch(true)}><${Ico} n="spark" s=${14}/> Preencher e Avaliar Turma em Lote</button>
+     </div>
+    </div>`}
+    ${batchMsg&&h`<div class="note ok">${batchMsg}</div>`}
+   </div>
+  </details>
 
   <div class="abar"><div class="r1">
-   <div class="fld"><label for="sel-al">Aluno</label><select id="sel-al" value=${si} onChange=${e=>pick(e.target.value)}><option value="">— escolhe um aluno —</option>${(c?c.students:[]).map(s=>h`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select></div>
-   <button class="btn" disabled=${!si||!G.length||busy} onClick=${run}>${busy?'A avaliar…':'Avaliar teste'}</button>
-   ${Object.keys(rs).length>0&&h`<button class="btn k" disabled=${busy} onClick=${ask}>2.ª opinião (LLM)</button>`}
-   <span class="sp"></span>
-   ${ev.length>0&&h`<div class="tot"><span class="score">${(P/M*20).toFixed(1)}</span><span class="mu">/ 20<br/>${P}/${M} pts${pend?' · provisória':''}</span></div><button class="btn" disabled=${saved} onClick=${save}>${saved?'Nota guardada ✔':'Guardar nota'}</button>`}
-   </div>
-   ${!si&&G.length>0&&h`<p class="mu hint">Escolhe um aluno para começar. Depois cola as respostas e carrega em «Avaliar teste».</p>`}
-   ${err&&h`<div class="note err" role="alert">${err}</div>`}
-   ${AQ.length>1&&h`<div class="qnav" aria-label="Ir para a questão">${AQ.map(({q})=>h`<button key=${q.id} class=${'qc '+qs(q)} onClick=${()=>goQ(q.id)} title=${'Questão '+q.label}>${q.label}</button>`)}</div>`}</div>
+  <div class="fld"><label for="sel-al">Aluno</label><select id="sel-al" value=${si} onChange=${e=>pick(e.target.value)}><option value="">— escolhe um aluno —</option>${(c?c.students:[]).map(s=>h`<option key=${s.id} value=${s.id}>${s.name}${((t.grades||{})[s.id])?' ('+gn(t.grades[s.id]).toFixed(1)+' val.)':''}</option>`)}</select></div>
+  <button class="btn" disabled=${!si||!G.length||busy} onClick=${run}>${busy?'A avaliar…':'Avaliar teste'}</button>
+  ${Object.keys(rs).length>0&&h`<button class="btn k" disabled=${busy} onClick=${ask}>2.ª opinião (LLM)</button>`}
+  <span class="sp"></span>
+  ${ev.length>0&&h`<div class="tot"><span class="score">${(P/M*20).toFixed(1)}</span><span class="mu">/ 20<br/>${P}/${M} pts${pend?' · provisória':''}</span></div><button class="btn" disabled=${saved} onClick=${save}>${saved?'Nota guardada ✔':'Guardar nota'}</button>`}
+  </div>
+  ${!si&&G.length>0&&h`<p class="mu hint">Escolhe um aluno para começar (ou usa a «Importação em Lote» acima). Depois carrega em «Avaliar teste».</p>`}
+  ${err&&h`<div class="note err" role="alert">${err}</div>`}
+  ${AQ.length>1&&h`<div class="qnav" aria-label="Ir para a questão">${AQ.map(({q})=>h`<button key=${q.id} class=${'qc '+qs(q)} onClick=${()=>goQ(q.id)} title=${'Questão '+q.label}>${q.label}</button>`)}</div>`}</div>
 
   <${EnginePanel} db=${db} dbm=${dbm} onDict=${onDict} eb=${eb} ebm=${ebm} onEmb=${onEmb} llm=${llm} setLlm=${setLlm}/>
 
   <div class="sech"><div><h2>Questões</h2><div class="chips" style="margin-top:6px"><span class="chip">${G.length} grupo(s)</span><span class="chip">${AQ.length} questão(ões)</span><span class=${'chip '+(withModel===AQ.length&&AQ.length?'ok':'warn')}>${withModel}/${AQ.length} com resposta-modelo</span></div></div>
-   <div class="row"><button class="btn g s" onClick=${()=>setEd(!ed)}>${ed?'Concluir edição':'Editar estrutura'}</button>${t.paper&&h`<button class="btn g s" onClick=${rp}>Reler estrutura do PDF</button>`}</div></div>
+  <div class="row"><button class="btn g s" onClick=${()=>setEd(!ed)}>${ed?'Concluir edição':'Editar estrutura'}</button>${t.paper&&h`<button class="btn g s" onClick=${rp}>Reler estrutura e respostas-modelo do PDF</button>`}</div></div>
   ${t.paper&&h`<details class="adv"><summary>Texto lido do PDF do teste (${fmtN(t.paper.text.length)} caracteres)</summary><div class="mu" style=${{whiteSpace:'pre-wrap',maxHeight:'200px',overflow:'auto'}}>${t.paper.text.slice(0,1500)}</div></details>`}
   ${!G.length&&h`<div class="note">Sem questões. ${t.paper?'Carrega em «Reler estrutura do PDF» (só funciona com PDFs com texto).':'Este teste não tem PDF: usa «Editar estrutura» para criar grupos e questões.'}</div>`}
-
   ${G.map(g=>h`<section key=${g.id}>
-   <div class="gh">${ed?h`<input style=${{maxWidth:'260px'}} aria-label="Nome do grupo" value=${g.name} onInput=${e=>upG(g.id,{name:e.target.value})}/><button class="btn k s" onClick=${()=>upT(o=>({...o,groups:o.groups.filter(x=>x.id!==g.id)}))}>Remover grupo</button>`:h`<h3>${g.name}</h3>`}
-    <span class="chip">${g.qs.length} questão(ões)</span><span class="chip">${g.qs.reduce((a,q)=>a+(+q.max||0),0)} pts</span></div>
-   ${(g.intro||ed)&&h`<details class="adv"><summary>Texto / enunciado do grupo</summary>${ed?h`<textarea value=${g.intro} onInput=${e=>upG(g.id,{intro:e.target.value})}></textarea>`:h`<div class="mu" style=${{whiteSpace:'pre-wrap'}}>${g.intro}</div>`}</details>`}
-   ${g.qs.map(q=>Q(g,q))}
-   ${ed&&h`<p style="margin-top:12px"><button class="btn g s" onClick=${()=>upG(g.id,{qs:[...g.qs,{id:'q'+Date.now(),label:String(g.qs.length+1),text:'',max:10,model:'',dom:'EL'}]})}>+ Questão</button></p>`}</section>`)}
+  <div class="gh">${ed?h`<input style=${{maxWidth:'260px'}} aria-label="Nome do grupo" value=${g.name} onInput=${e=>upG(g.id,{name:e.target.value})}/><button class="btn k s" onClick=${()=>upT(o=>({...o,groups:o.groups.filter(x=>x.id!==g.id)}))}>Remover grupo</button>`:h`<h3>${g.name}</h3>`}
+  <span class="chip">${g.qs.length} questão(ões)</span><span class="chip">${g.qs.reduce((a,q)=>a+(+q.max||0),0)} pts</span></div>
+  ${(g.intro||ed)&&h`<details class="adv"><summary>Texto / enunciado do grupo</summary>${ed?h`<textarea value=${g.intro} onInput=${e=>upG(g.id,{intro:e.target.value})}></textarea>`:h`<div class="mu" style=${{whiteSpace:'pre-wrap'}}>${g.intro}</div>`}</details>`}
+  ${g.qs.map(q=>Q(g,q))}
+  ${ed&&h`<p style="margin-top:12px"><button class="btn g s" onClick=${()=>upG(g.id,{qs:[...g.qs,{id:'q'+Date.now(),label:String(g.qs.length+1),text:'',max:10,model:'',dom:'EL'}]})}>+ Questão</button></p>`}</section>`)}
   ${ed&&h`<p style="margin-top:20px"><button class="btn g" onClick=${()=>upT(o=>({...o,groups:[...(o.groups||[]),{id:'g'+Date.now(),name:'Grupo',intro:'',qs:[]}]}))}>+ Grupo</button></p>`}
  </div>`}</div>`;
 }
@@ -662,20 +1447,38 @@ function App(){
  const[llm,setLlm]=usePersist('phalpd_llm',{prov:'gemini',key:'',model:''});
  const[docs,setDocs]=usePersist('phalpd_docs',{crit:[]});
  const[tests,setTests]=usePersist('phalpd_tests',[]);
+ const[user,setUser]=usePersist('phalpd_user',{loggedIn:false,hasAccount:false,email:''});
+
  const crit=docs.crit||[],ctext=crit.map(d=>d.text).join('\n'),pp=ptPages(ctext);
  const nfb=Object.values(m).reduce((a,x)=>a+x.n,0);
- /* evita que o navegador abra o PDF se for largado fora de uma zona */
+
  useEffect(()=>{const p=e=>e.preventDefault();window.addEventListener('dragover',p);window.addEventListener('drop',p);return()=>{window.removeEventListener('dragover',p);window.removeEventListener('drop',p)}},[]);
- const go=p=>{setPg(p);window.scrollTo({top:0})};
+ const go=p=>{setPg(p);window.scrollTo({top:0,behavior:'smooth'})};
+
+ /* Texto do botão de conta muda consoante o estado do utilizador */
+ const authLabel=user.loggedIn
+  ?`Sessão: ${user.email.split('@')[0]}`
+  :user.hasAccount
+   ?'Iniciar sessão'
+   :'Criar conta / Iniciar sessão';
+
  return h`<${React.Fragment}>
- <header class="top"><button class="brand" onClick=${()=>go('inicio')} aria-label="FALPD — início"><${Logo} s=${36}/><span>F<b>ALPD</b></span></button>
-  <nav class="nav" aria-label="Principal">${NAV.map(([k,t,i])=>h`<button key=${k} aria-current=${pg===k?'page':undefined} onClick=${()=>go(k)}><${Ico} n=${i}/><span>${t}</span></button>`)}</nav></header>
- <main class="wrap">${pg==='inicio'?h`<${Home} go=${go} n=${nfb} crit=${crit.length} cls=${cls} tests=${tests}/>`
-  :pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls}/>`
+ <header class="top">
+  <button class="brand" onClick=${()=>go('inicio')} aria-label="FALPD — início"><${Logo} s=${36}/><span>F<b>ALPD</b></span></button>
+  <nav class="nav" aria-label="Principal">${NAV.map(([k,t,i])=>h`<button key=${k} aria-current=${pg===k?'page':undefined} onClick=${()=>go(k)}><${Ico} n=${i}/><span>${t}</span></button>`)}</nav>
+  <button class=${'auth-btn'+(user.loggedIn?' on':'')} onClick=${()=>go('auth')} aria-current=${pg==='auth'?'page':undefined}>
+   <${Ico} n="user" s=${16}/><span>${authLabel}</span>
+  </button>
+ </header>
+ <main class="wrap" key=${pg}>
+  ${pg==='inicio'?h`<${Home} go=${go} n=${nfb} crit=${crit.length} cls=${cls} tests=${tests}/>`
+  :pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls} tests=${tests} setTests=${setTests} m=${m} crit=${ctext} go=${go} setTid=${setTid}/>`
   :pg==='crit'?h`<${CritPage} crit=${crit} setDocs=${setDocs} pp=${pp}/>`
-  :pg==='tests'?h`<${Tests} tests=${tests} setTests=${setTests} cls=${cls} setTid=${setTid} go=${go}/>`
-  :h`<${Correct} cls=${cls} setCls=${setCls} crit=${ctext} m=${m} setM=${setM} st=${st} setSt=${setSt} llm=${llm} setLlm=${setLlm} tests=${tests} setTests=${setTests} tid=${tid} setTid=${setTid}/>`}</main>
- <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados. <span style="opacity:.5">· versão 02-11-e</span></footer><//>`;
+  :pg==='tests'?h`<${Tests} tests=${tests} setTests=${setTests} cls=${cls} setTid=${setTid} go=${go} m=${m} crit=${ctext}/>`
+  :pg==='auth'?h`<${AuthPage} user=${user} setUser=${setUser} go=${go}/>`
+  :h`<${Correct} cls=${cls} setCls=${setCls} crit=${ctext} m=${m} setM=${setM} st=${st} setSt=${setSt} llm=${llm} setLlm=${setLlm} tests=${tests} setTests=${setTests} tid=${tid} setTid=${setTid} go=${go}/>`}
+ </main>
+ <footer>© 2026 FALPD — Ferramenta de Análise de Literatura Portuguesa para Docentes. Todos os direitos reservados. <span style="opacity:.5">· versão 03-01-batch-stats</span></footer><//>`;
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h`<${EB}><${App}/><//>`);
 </script>
