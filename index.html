@@ -374,22 +374,22 @@ const FIG=Object.keys(FIGN);
 /* elementos essenciais: definidos pelo professor ou, por defeito, as figuras de estilo nomeadas na resposta-modelo */
 const essOf=q=>{const L=(q.chave||'').split('\n').map(x=>x.trim()).filter(Boolean);return L.length?L.map(l=>{const[a,w]=l.split('::');return{lab:a.trim(),alts:a.split('|').map(x=>norm(x).trim()).filter(Boolean),w:+w||1}}):figs(q.model||'').map(f=>({lab:FIGN[f],alts:[f],w:2}))};
 const sig=z=>1/(1+Math.exp(-z));
-const pred=(m,x)=>{const p=sig(m.b+x.reduce((s,v,i)=>s+v*m.w[i],0));return x[11]>0?Math.min(p,.4):p};
+const pred=(m,x,he,cs)=>{let p=sig(m.b+x.reduce((s,v,i)=>s+v*m.w[i],0));if(cs!=null)p=.4*p+.6*cs;if(x[11]>0)p=Math.min(p,.4);else if(he){const ce=.2+.8*(x[10]/2+.5);if(p>ce)p=ce}return p};
 const hits=(a,l)=>l.filter(w=>a.includes(w)).length;
 const bg=a=>a.slice(1).map((w,i)=>a[i]+'_'+w);
 
 function feats(ans,ref,ctx,crit,ess,sem,lg,rng){
  const ta=tok(ans),tr=tok(ref);if(!ta.length)return FN.map(()=>0);
- const sa=new Set(ta),sr=new Set(tr),na=norm(ans),ba=new Set(bg(ta)),br=bg(tr);
+ const sa=new Set(ta),sr=new Set(tr),na=norm(ans),ns=stripNeg(na),ba=new Set(bg(ta)),br=bg(tr);
  const ov=S=>S.size?[...sa].filter(w=>S.has(w)).length/sa.size:0;
  const ws=na.match(/[a-z]+/g)||[],nw=ws.length||1,nr=Math.max((norm(ref).match(/[a-z]+/g)||[]).length,1),r=nw/nr;
- let c=0,sw=0;(ess||[]).forEach(it=>{sw+=it.w;if(it.alts.some(z=>na.includes(z))||(sem&&sem.hit[it.lab]))c+=it.w});
- const mf=figs(ref),sf=figs(ans),wrong=mf.length&&sf.length&&!sf.some(f=>mf.includes(f))?1:0;
+ let c=0,sw=0;(ess||[]).forEach(it=>{sw+=it.w;if(it.alts.some(z=>hasAlt(ns,z))||(sem&&sem.hit[it.lab]))c+=it.w});
+ const mf=figs(ref),sf=figs(ns),wrong=mf.length&&sf.length&&!sf.some(f=>mf.includes(f))?1:0;
  const L=[cos(tf(ta),tf(tr)),sr.size?[...sr].filter(w=>sa.has(w)).length/sr.size:0,br.length?br.filter(b=>ba.has(b)).length/br.length:0,ov(topSet(ctx,400)),ov(topSet(crit,250)),Math.min(hits(na,RES),3)/3,(rng?(nw<rng[0]?nw/rng[0]:nw>rng[1]?rng[1]/nw:1):Math.min(r,1/r)),Math.min(hits(na,INF),3)/3,Math.min(hits(na,CON),4)/4,Math.min(new Set(ws).size/nw*1.2,1),sw?(c/sw-.5)*2:0,wrong];
  L.push(sem?sem.cov:L[0],sem?sem.prec:L[1],lg&&lg.sp!=null?lg.sp:.75,lg?lg.pu:.75);return L;
 }
 
-const train=(m,x,t)=>{const h=[...(m.h||[]),[x,t]].slice(-200);let w=[...m.w],b=m.b;for(let e=0;e<6;e++)for(const[xi,ti]of h){const er=ti-sig(b+xi.reduce((s,v,i)=>s+v*w[i],0));w=w.map((v,i)=>v+.12*(er*xi[i]-.01*v));b+=.12*er}return{w,b,n:m.n+1,h}};
+const train=(m,x,t,p0)=>{const h=[...(m.h||[]),[x,t]].slice(-200);let w=[...m.w],b=m.b;for(let e=0;e<6;e++)for(const[xi,ti]of h){const er=ti-sig(b+xi.reduce((s,v,i)=>s+v*w[i],0));w=w.map((v,i)=>v+.12*(er*xi[i]-.02*(v-(p0?p0.w[i]:0))));b+=.12*(er-.02*(b-(p0?p0.b:0)))}return{w,b,n:m.n+1,h}};
 const DOMN={EL:'Educação literária',ES:'Escrita',GR:'Gramática',LE:'Leitura'};
 const detDom=t=>{const n=norm(t);return/\b(escreva|redija|elabore|produza)\b/.test(n)&&/(palavras|texto|apreciacao|opiniao|ensaio|artigo)/.test(n)?'ES':/(oracao|subordinada|coordenada|funcao sintatica|complemento|classe de palavras|valor modal|tempo verbal|pronome|determinante|sujeito|predicativo|deixis)/.test(n)?'GR':'EL'};
 const qdom=q=>q.dom||detDom(q.text);
@@ -420,6 +420,15 @@ async function semOf(ans,ref,ess){
 const figOK=(w,f)=>f==='retoric'||!/(ic[oa]s?|icamente)$/.test(w);
 const figOf=w=>FIG.find(f=>w.startsWith(f)&&figOK(w,f));
 const figs=t=>{const ws=norm(t).match(/[a-z]+/g)||[];return FIG.filter(f=>ws.some(w=>w.startsWith(f)&&figOK(w,f)))};
+/* negações: «não é uma metáfora» não conta como figura mencionada */
+const stripNeg=n=>n.replace(new RegExp('\\b(?:nao|nem)\\s+(?:[a-z]+\\s+){0,3}?[a-z]*(?:'+FIG.join('|')+')[a-z]*','g'),' ');
+/* elemento essencial presente? figuras: só palavra que nomeia o recurso (não «simbólico»); frases/sinónimos: subcadeia */
+/* ===== Critérios do PDF: descritores do domínio da questão; pesam 60% na nota proposta ===== */
+const CGEN=new Set(['respos','aprese','indica','refere','pontos','criter','nivel','descri','domini','questa','grupo','cotaca','conteu','texto']);
+const CPM=new Map();
+const critParams=t=>{if(!t)return[];if(CPM.has(t))return CPM.get(t);const seen=new Set(),P=t.replace(/\s+/g,' ').split(/(?<=[.;:!?])\s+|\s[•▪●◦]\s|\s[-–]\s/).map(x=>x.trim()).filter(x=>x.length>=30&&x.length<=260).map(x=>({txt:x,k:[...new Set(tok(x))].filter(w=>w.length>=5&&!CGEN.has(w))})).filter(p=>p.k.length>=3&&!seen.has(p.txt)&&seen.add(p.txt)).slice(0,12);CPM.set(t,P);return P};
+const critScore=(a,t)=>{const P=critParams(t);if(P.length<3||!a||!a.trim())return null;const sa=new Set(tok(a)),it=P.map(p=>{const f=p.k.filter(w=>sa.has(w)).length/p.k.length;return{txt:p.txt,f,ok:f>=.4}}),raw=it.reduce((q,z)=>q+Math.min(1,z.f/.6),0)/it.length;return{s:Math.max(0,Math.min(1,(raw-.1)/.5)),it}};
+const hasAlt=(n,z)=>FIG.includes(z)?(n.match(/[a-z]+/g)||[]).some(w=>w.startsWith(z)&&figOK(w,z)):n.includes(z);
 /* ===== Deteção automática de cópia e paráfrase entre alunos (mesma questão) =====
    Lexical: sequências de 4 palavras, índice invertido (custa O(texto), não O(alunos×texto)), ignorando o que vem do enunciado.
    Semântica: embeddings por frase (modelo multilingue de paráfrases), alinhamento frase-a-frase, com cache. Só dá indício, nunca nota. */
@@ -659,9 +668,9 @@ function computeClassAnalytics(c,tests,m,crit){
      failedEss=savedQ.wrong>0||(savedQ.es&&savedQ.es.some(e=>!e.hit));
     }else if(rawAns.trim()&&q.model&&q.model.trim()){
      const x=feats(rawAns,q.model,'',critDom(crit||'',dom),ess,null,null,rangeOf(q.text));
-     pct=pred(m[dom]||W0,x);
-     const na=norm(rawAns);
-     failedEss=x[11]>0||(ess.length>0&&ess.some(it=>!it.alts.some(z=>na.includes(z))));
+     pct=pred(m[dom]||W0,x,ess.length>0,(c0=>c0&&c0.s)(critScore(rawAns,critDom(crit||'',dom))));
+     const na=stripNeg(norm(rawAns));
+     failedEss=x[11]>0||(ess.length>0&&ess.some(it=>!it.alts.some(z=>hasAlt(na,z))));
      if(x[7]<.35)skillFails.sub++;
      skillFails.subTot++;
     }
@@ -707,7 +716,7 @@ function computeClassAnalytics(c,tests,m,crit){
     if(g&&g.m){finalNota=+gn(g).toFixed(1);break}
    }
   }
-  return{num:idx+1,id:s.id,name:s.name,nota:finalNota,round:finalNota!==null?Math.round(finalNota):null};
+  return{num:idx+1,id:s.id,name:s.name,nota:finalNota,round:finalNota!==null?Math.round(finalNota):null,per:s.per,risco:s.risco||(finalNota!==null?(finalNota<9.5?'alto':finalNota<10.5?'médio':'baixo'):null),mot:s.mot||(finalNota!==null&&finalNota<10.5?[finalNota<9.5?'nota inferior a 9,5':'nota no limiar']:[])};
  });
  const validGrades=studentRows.filter(r=>r.nota!==null);
  const avgClass=validGrades.length?(validGrades.reduce((a,b)=>a+b.nota,0)/validGrades.length):null;
@@ -727,9 +736,35 @@ function computeClassAnalytics(c,tests,m,crit){
   {lab:'16,5 – 20',sub:'Muito Bom',cnt:validGrades.filter(r=>r.nota>=16.5).length,cls:'ok'}
  ];
 
- return{cTests,qStats,domTotals,gaps,studentRows,validGrades,avgClass,passCount,dist};
+ const atRisk=studentRows.filter(r=>r.risco==='alto'||r.risco==='médio').sort((a,b)=>(b.risco==='alto')-(a.risco==='alto')||(a.nota??99)-(b.nota??99));
+ const perAvg=(c.pl||[]).map((lab,j)=>{const v=sts.map(s=>s.per&&s.per[j]).filter(x=>typeof x==='number'&&!isNaN(x));return{lab,avg:v.length?v.reduce((a,b)=>a+b,0)/v.length:null,neg:v.filter(x=>x<9.5).length}});
+ return{cTests,qStats,domTotals,gaps,studentRows,validGrades,avgClass,passCount,dist,atRisk,perAvg};
 }
 
+/* ===== Importação de turmas do Excel: deteta cabeçalho, nome, períodos, média e pauta; sinaliza risco ===== */
+async function loadXlsx(){if(window.XLSX)return;await new Promise((ok,ko)=>{const e=document.createElement('script');e.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';e.onload=ok;e.onerror=()=>ko(new Error('não foi possível carregar o leitor de Excel'));document.head.appendChild(e)})}
+const xnum=v=>{if(typeof v==='number')return v;if(typeof v!=='string')return NaN;const t=v.replace(',','.').trim();return/^\d{1,2}(\.\d+)?$/.test(t)?+t:NaN};
+const riskOf=(per,m,pauta)=>{const mot=[];let s=0;if(m<9.5||pauta<9.5){s=2;mot.push('média/pauta negativa')}else if(m<10.5){s=1;mot.push('média no limiar (9,5–10,4)')}
+ const pv=per.filter(v=>!isNaN(v));if(pv.length>=2){const d=pv[pv.length-1]-pv[0];if(d<=-2){mot.push('descida de '+Math.abs(d).toFixed(1).replace('.',',')+' valores');s=Math.max(s,m<12?2:1)}}
+ const ng=pv.filter(v=>v<9.5).length;if(ng>=2&&s<2){s=2;mot.push(ng+' períodos negativos')}else if(ng===1&&s<1){s=1;mot.push('1 período negativo')}
+ return{risco:['baixo','médio','alto'][s],mot}};
+function parseTurma(rows){
+ const R=rows.map(r=>(r||[]).map(x=>x==null?'':x)),fill=r=>r.filter(x=>String(x).trim()).length;
+ let hi=R.findIndex((r,i)=>i<20&&fill(r)>=3&&r.some(x=>/nome|aluno/.test(norm(String(x)))));
+ if(hi<0)hi=R.findIndex(r=>fill(r)>=2);if(hi<0)return null;
+ const HR=R[hi].map(x=>String(x).trim()),H=HR.map(x=>norm(x)),body=R.slice(hi+1).filter(r=>fill(r)>0);
+ let cn=H.findIndex(h=>/nome|aluno/.test(h));
+ if(cn<0)cn=H.findIndex((_,j)=>body.filter(r=>typeof r[j]==='string'&&isNaN(xnum(r[j]))&&/\p{L}{3}/u.test(r[j])).length>=body.length*.6);
+ if(cn<0)return null;
+ const cnum=H.findIndex(h=>/^n\.?\s*[ºo°]?$|numero/.test(h)),isN=j=>j!==cn&&j!==cnum&&body.filter(r=>xnum(r[j])<=20).length>=Math.max(2,body.length*.5),cols=H.map((_,j)=>j).filter(isN);
+ const cm=cols.find(j=>/media|mf|classifica/.test(H[j])),cp=cols.find(j=>/pauta|cfd|^cf$|nota final/.test(H[j])&&j!==cm),per=cols.filter(j=>j!==cm&&j!==cp);
+ const t=Date.now(),students=[];
+ body.forEach((r,i)=>{const name=String(r[cn]).trim();if(!/\p{L}{3}/u.test(name)||/^(m[eé]dia|total|turma)/i.test(norm(name)))return;
+  const pv=per.map(j=>xnum(r[j])),ok=pv.filter(v=>!isNaN(v));
+  let m=cm!=null?xnum(r[cm]):NaN;if(isNaN(m))m=cp!=null&&!isNaN(xnum(r[cp]))?xnum(r[cp]):ok.length?ok.reduce((a,b)=>a+b,0)/ok.length:NaN;
+  if(isNaN(m))return;const pauta=cp!=null&&!isNaN(xnum(r[cp]))?xnum(r[cp]):Math.round(m),rk=riskOf(pv,m,pauta);
+  students.push({id:t+i,name,nota:+m.toFixed(1),media:+m.toFixed(1),pauta,per:pv,risco:rk.risco,mot:rk.mot,numero:cnum>=0?r[cnum]:i+1})});
+ return{students,pl:per.map(j=>HR[j]||('Período '+(j+1))),info:'nome «'+HR[cn]+'» · '+(per.length?'períodos: '+per.map(j=>HR[j]).join(', '):'sem períodos')+' · média '+(cm!=null?'«'+HR[cm]+'»':'calculada')+' · pauta '+(cp!=null?'«'+HR[cp]+'»':'= média arredondada')}}
 function downloadBlob(content,filename,mime){
  const blob=new Blob([content],{type:mime});
  const url=URL.createObjectURL(blob);
@@ -1063,7 +1098,7 @@ function CritPage({crit,setDocs,pp}){
 
 /* ===== Turmas + Dashboard de Análise Estatística + Exportação (Excel / CSV / PDF) ===== */
 function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
- const[ci,setCi]=useState(0),[nm,setNm]=useState(''),[cn,setCn]=useState(''),[bulk,setBulk]=useState(''),[tab,setTab]=useState('analytics');
+ const[imp,setImp]=useState(''),[ci,setCi]=useState(0),[nm,setNm]=useState(''),[cn,setCn]=useState(''),[bulk,setBulk]=useState(''),[tab,setTab]=useState('analytics');
  const idx=cls[ci]?ci:0,c=cls[idx];
  const upd=f=>setCls(cls.map((x,i)=>i===idx?f(x):x));
  const sts=c?c.students:[],ns=sts.filter(s=>s.nota!=null&&s.nota!==''),avg=ns.length?(ns.reduce((a,s)=>a+ +s.nota,0)/ns.length).toFixed(1):'—';
@@ -1071,6 +1106,8 @@ function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
  const addC=()=>{if(cn.trim()){setCls([...cls,{id:Date.now(),name:cn.trim(),students:[]}]);setCi(cls.length);setCn('')}};
  const addS=()=>{if(nm.trim()){upd(x=>({...x,students:[...x.students,{id:Date.now(),name:nm.trim(),nota:null}]}));setNm('')}};
  const addB=()=>{const L=bulk.split('\n').map(x=>x.trim()).filter(Boolean);if(L.length){const t=Date.now();upd(x=>({...x,students:[...x.students,...L.map((name,i)=>({id:t+i,name,nota:null}))]}));setBulk('')}};
+ const onXlsx=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;setImp('A ler o Excel…');try{await loadXlsx();const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),out=[],inf=[];wb.SheetNames.forEach((sn,k)=>{const p=parseTurma(XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''}));if(p&&p.students.length>=2){out.push({id:Date.now()+k,name:wb.SheetNames.length>1?sn:f.name.replace(/\.[^.]+$/,''),students:p.students,pl:p.pl});inf.push(p.info)}});if(!out.length)throw new Error('não encontrei uma lista de alunos com notas');setCls([...cls,...out]);setCi(cls.length);setTab('analytics');setImp('Importad'+(out.length>1?'as '+out.length+' turmas':'a 1 turma')+' · '+out.reduce((a,o)=>a+o.students.length,0)+' alunos · '+out.reduce((a,o)=>a+o.students.filter(z=>z.risco!=='baixo').length,0)+' em risco/atenção. Colunas: '+inf[0])}catch(x){setImp('Erro na importação: '+x.message)}};
+ const impBtn=h`<label class="btn g s" style="cursor:pointer"><${Ico} n="plus" s=${14}/> Importar turma do Excel<input type="file" accept=".xlsx,.xls,.csv" hidden onChange=${onXlsx}/></label>`,impNote=imp?h`<div class="note" role="status">${imp}</div>`:null;
  const enter=f=>e=>{if(e.key==='Enter'){e.preventDefault();f()}};
 
  /* Gera dados de exemplo para testar o Dashboard Estatístico e Exportação Excel */
@@ -1138,6 +1175,9 @@ function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
  };
 
  const an=c?computeClassAnalytics(c,tests,m,crit):null;
+ const riskSec=an&&(an.atRisk.length||an.perAvg.length)?h`<section class="sec"><div class="row" style="justify-content:space-between;align-items:center"><h3>Alunos em risco (${an.atRisk.length})</h3><span class=${'chip '+(an.atRisk.some(r=>r.risco==='alto')?'err':'warn')}>${an.atRisk.filter(r=>r.risco==='alto').length} alto · ${an.atRisk.filter(r=>r.risco==='médio').length} médio</span></div>
+  ${an.perAvg.length>0&&h`<div class="chart-rows" style="margin:12px 0">${an.perAvg.map(p=>h`<div class="chart-row" key=${p.lab}><div class="chart-lbl"><span>${p.lab}</span><span>${p.avg!==null?p.avg.toFixed(1)+' · '+p.neg+' neg.':'—'}</span></div><div class=${'bar '+(p.avg===null?'':p.avg<9.5?'err':p.avg>=13?'ok':'warn')}><i style=${{width:Math.round((p.avg||0)/20*100)+'%'}}></i></div></div>`)}</div>`}
+  ${an.atRisk.length?h`<div class="gap-list">${an.atRisk.map(r=>h`<div key=${r.id} class=${'gap-item '+(r.risco==='alto'?'crit':'warn')}><b>${r.name}</b> — média ${r.nota!==null?r.nota.toFixed(1):'—'}${r.per&&r.per.length?' ('+r.per.map(v=>isNaN(v)?'—':v).join(' → ')+')':''}<br/><span class="mu">${r.mot.join(' · ')}</span></div>`)}</div>`:h`<p class="mu">Nenhum aluno em risco com os dados atuais.</p>`}</section>`:null;
  const maxHisto=an?Math.max(1,...an.dist.map(d=>d.cnt)):1;
 
  return h`<div class="page-anim"><div class="ph">
@@ -1160,6 +1200,7 @@ function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
    <div class="stat"><b>${an.validGrades.length}</b><span>com classificação</span></div>
    <div class="stat"><b>${an.avgClass!==null?an.avgClass.toFixed(1):avg}</b><span>média da turma (0–20)</span></div>
    <div class="stat"><b>${an.validGrades.length?Math.round(an.passCount/an.validGrades.length*100)+'%':'—'}</b><span>taxa de aprovação (≥ 9,5)</span></div>
+   <div class="stat"><b>${an.atRisk.length}</b><span>alunos em risco/atenção</span></div>
   </div>
 
   <div class="tabs" style="margin-top:20px">
@@ -1167,12 +1208,12 @@ function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
    <button class=${'pill'+(tab==='list'?' on':'')} onClick=${()=>setTab('list')}><${Ico} n="users" s=${15}/> Lista de Alunos e Notas (${sts.length})</button>
   </div>
 
-  ${tab==='analytics'&&h`<div>
+  ${tab==='analytics'&&h`<div>${impNote}${riskSec}
    ${(!an.qStats.length&&!an.validGrades.length)?h`<section class="sec empty">
     <div class="fic"><${Ico} n="chart" s=${26}/></div>
     <h3>Ainda não há dados estatísticos para ${c.name}</h3>
     <p>Corrige um teste desta turma ou carrega dados de demonstração para veres os gráficos de lacunas coletivas e testar a exportação Excel/CSV/PDF.</p>
-    <p style="margin-top:14px"><button class="btn" onClick=${loadDemoData}><${Ico} n="spark" s=${16}/> Carregar dados de demonstração da turma</button></p>
+    <p style="margin-top:14px">${impBtn} <button class="btn" onClick=${loadDemoData}><${Ico} n="spark" s=${16}/> Carregar dados de demonstração da turma</button></p>
    </section>`:h`<div>
     <section class="sec">
      <div class="row" style="justify-content:space-between;align-items:center">
@@ -1239,10 +1280,11 @@ function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
    <div class="row" style="justify-content:space-between;align-items:center">
     <h3>${c.name} — Pauta de Alunos</h3>
     <div class="row">
-     ${!sts.length&&h`<button class="btn g s" onClick=${loadDemoData}><${Ico} n="spark" s=${14}/> Preencher turma de exemplo</button>`}
+     ${impBtn}${!sts.length&&h`<button class="btn g s" onClick=${loadDemoData}><${Ico} n="spark" s=${14}/> Preencher turma de exemplo</button>`}
      ${cls.length>1&&h`<button class="btn k s" onClick=${()=>{if(confirm('Remover a turma '+c.name+'?')){setCls(cls.filter((_,i)=>i!==idx));setCi(0)}}}><${Ico} n="trash" s=${14}/> Remover turma</button>`}
     </div>
    </div>
+   ${impNote}
    ${sts.length?h`<div class="tw"><table><thead><tr><th>N.º</th><th>Aluno</th><th>Nota (0–20)</th><th>Pauta (Inovar/GIAE)</th><th>Situação</th><th></th></tr></thead><tbody>${sts.map((s,i)=>{
     const v=s.nota!=null&&s.nota!==''?+s.nota:null;
     return h`<tr key=${s.id}>
@@ -1250,7 +1292,7 @@ function Dash({cls,setCls,tests,setTests,m,crit,go,setTid}){
      <td><div class="who"><span class="av">${ini(s.name)}</span><input aria-label="Nome do aluno" value=${s.name} onInput=${e=>setS(s.id,{name:e.target.value})}/></div></td>
      <td><input class="nota" aria-label=${'Nota de '+s.name} type="number" min="0" max="20" step="0.1" placeholder="—" value=${s.nota??''} onInput=${e=>setS(s.id,{nota:e.target.value})}/></td>
      <td><b>${v!==null?Math.round(v):'—'}</b></td>
-     <td>${v===null?h`<span class="chip">Pendente</span>`:v>=9.5?h`<span class="chip ok">Aprovado</span>`:h`<span class="chip err">Em risco</span>`}</td>
+     <td>${v===null?h`<span class="chip">Pendente</span>`:v>=9.5?(s.risco==='médio'||s.risco==='alto'?h`<span class="chip warn" title=${(s.mot||[]).join(' · ')}>Em risco (${s.risco})</span>`:h`<span class="chip ok">Aprovado</span>`):h`<span class="chip err">Em risco</span>`}</td>
      <td class="ta"><button class="ibtn" aria-label=${'Remover '+s.name} onClick=${()=>upd(x=>({...x,students:x.students.filter(y=>y.id!==s.id)}))}><${Ico} n="trash"/></button></td>
     </tr>`;
    })}</tbody></table></div>`
@@ -1366,8 +1408,8 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
  const run=async()=>{setBusy(true);const r={},known=new Set(norm([t.paper?t.paper.text:'',ctx,...G.map(g=>g.intro+' '+g.qs.map(q=>q.text+' '+q.model).join(' '))].join(' ')).match(/[a-z]{3,}/g)||[]);
   for(const{g,q}of AQ){const a=ans(q.id);if(((q.model&&q.model.trim())||qdom(q)==='ES')&&a.trim()){const d=qdom(q),ess=essOf(q),ref=q.model&&q.model.trim()?q.model:q.text;let sem=null;if(EMB.ext){try{sem=await semOf(a,ref,ess)}catch(e){}}
   let sim=[];{const oth=Object.entries(t.answers||{}).filter(([sid,o])=>sid!==si&&((o||{})[q.id]||'').trim().split(/\s+/).length>=12).map(([sid,o])=>({nm:((c&&c.students.find(z=>String(z.id)===sid))||{}).name||'Outro aluno',tx:o[q.id]}));if(oth.length){try{sim=await simScan(a,oth,q.text)}catch(e){}}}
-  const lg=lingua(a,known),x=feats(a,ref,ctx+' '+g.intro,critDom(crit,d),ess,sem,lg,rangeOf(q.text)),e=Math.round(pred(m[d],x)*q.max*2)/2,na=norm(a);
-  r[q.id]={x,d,eng:e,llm:null,tg:null,prop:e,tin:'',es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>na.includes(z))||!!(sem&&sem.hit[it.lab])})),wrong:x[11],sm:!!sem,lg:{es:lg.es,ps:lg.ps},sim,wp:d==='ES'?wprof(a,lg,rangeOf(q.text)):null}}}
+  const lg=lingua(a,known),x=feats(a,ref,ctx+' '+g.intro,critDom(crit,d),ess,sem,lg,rangeOf(q.text)),cr=critScore(a,critDom(crit,d)),e=Math.round(pred(m[d],x,ess.length>0,cr&&cr.s)*q.max*2)/2,na=stripNeg(norm(a));
+  r[q.id]={x,d,eng:e,cr,llm:null,tg:null,prop:e,tin:'',es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>hasAlt(na,z))||!!(sem&&sem.hit[it.lab])})),wrong:x[11],sm:!!sem,lg:{es:lg.es,ps:lg.ps},sim,wp:d==='ES'?wprof(a,lg,rangeOf(q.text)):null}}}
   setRs(r);setSaved(false);setBusy(false);setErr(Object.keys(r).length?'':'Preenche a resposta-modelo e a resposta do aluno em pelo menos uma questão.')};
 
  const ask=async()=>{if(!llm.key){setErr('Define a chave da API em «Motor de análise → Segunda opinião».');return}setBusy(true);setErr('');const r={...rs};
@@ -1375,7 +1417,7 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
   setBusy(false)};
 
  const reg=qid=>{const e=rs[qid],q=AQ.find(a=>a.q.id===qid).q,v=e.tin!==''?+e.tin:e.prop;if(isNaN(v))return;const g=Math.max(0,Math.min(q.max,v));
-  setM({...m,[e.d]:train(m[e.d],e.x,g/q.max)});
+  setM({...m,[e.d]:train(m[e.d],e.x,g/q.max,MD0[e.d])});
   setSt({ok:(st.ok||0)+(Math.abs(e.eng-g)<=.1*q.max?1:0),n:st.n+1,eE:(st.eE*st.n+Math.abs(e.eng-g)/q.max)/(st.n+1),nl:st.nl+(e.llm?1:0),eL:e.llm?(st.eL*st.nl+Math.abs(e.llm.nota-g)/q.max)/(st.nl+1):st.eL});
   setRs({...rs,[qid]:{...e,tg:g}});setSaved(false)};
 
@@ -1430,9 +1472,9 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
      const a=(newAns[targetSid]||{})[q.id]||'';
      if(q.model&&q.model.trim()&&a.trim()){
       const d=qdom(q),ess=essOf(q),lg=lingua(a,known),x=feats(a,q.model,ctx+' '+g.intro,critDom(crit,d),ess,null,lg,rangeOf(q.text));
-      const sc=Math.round(pred(m[d],x)*q.max*2)/2,na=norm(a);
+      const cc=critScore(a,critDom(crit,d)),sc=Math.round(pred(m[d],x,ess.length>0,cc&&cc.s)*q.max*2)/2,na=stripNeg(norm(a));
       pSum+=sc;mSum+=q.max;
-      qsDetail[q.id]={p:sc,m:q.max,dom:d,es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>na.includes(z))})),wrong:x[11]};
+      qsDetail[q.id]={p:sc,m:q.max,dom:d,es:ess.map(it=>({lab:it.lab,hit:it.alts.some(z=>hasAlt(na,z))})),wrong:x[11]};
      }
     });
     if(mSum>0){
@@ -1463,6 +1505,7 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
   ${r.sim&&r.sim.length>0&&h`<div class=${'note '+(r.sim[0].sc>=.6?'err':'warn')} role="alert"><b>${r.sim[0].sc>=.6?'Possível cópia':'Semelhança a rever'}:</b> ${r.sim.map(z=>z.nm+' — '+Math.round(z.sc*100)+'% ('+(z.lex>=z.emb?'texto igual':'paráfrase')+')').join(' · ')}.${r.sim[0].ex.length?' Sequências comuns: '+r.sim[0].ex.map(e=>'«'+e+'»').join(' · ')+'.':''} <span class="mu">Só um indício: confirma antes de decidir.${r.sm?'':' Liga o modelo semântico para detetar paráfrases.'}</span></div>`}
   ${r.wp&&h`<div class="wp"><label>Análise da escrita</label><div class="wg">${r.wp.D.map(d=>h`<div class=${'wc '+d.lvl} key=${d.lab}><span>${d.lab}</span><b>${d.val}</b><small>${d.txt}</small></div>`)}</div><details class="adv"><summary>Ver texto anotado (recursos expressivos · conectores · repetições)</summary><${Hl} text=${ans(q.id)}/></details></div>`}
 
+  ${r.cr&&h`<details class="adv" open><summary>Critérios do PDF · ${r.cr.it.filter(z=>z.ok).length}/${r.cr.it.length} cumpridos · pesam 60% na proposta</summary><div class="chips">${r.cr.it.map((z,i)=>h`<span key=${i} class=${'chip '+(z.ok?'ok':'err')} title=${z.txt}>${z.ok?'✔ ':'✘ '}${z.txt.length>70?z.txt.slice(0,70)+'…':z.txt}</span>`)}</div></details>`}
   ${(r.es.length>0||r.wrong>0)&&h`<div style="margin-top:12px"><label>Elementos essenciais</label><div class="chips">${r.es.map(e=>h`<span key=${e.lab} class=${'chip '+(e.hit?'ok':'err')}>${e.hit?'✔ ':'✘ '}${e.lab}</span>`)}${r.wrong?h`<span class="chip warn">figura de estilo diferente da do modelo</span>`:null}</div></div>`}
   ${r.llm&&h`<p class="ll">${r.cx.length?'⚠ Motor e LLM discordam em: '+r.cx.join(', ')+' — rever com atenção.':'Motor e LLM concordam nos elementos verificados.'}${r.llm.el.length?' · LLM: '+r.llm.el.map(z=>(z.presente?'✔ ':'✘ ')+z.nome).join(' · '):''}</p>`}
   <div class="grade"><div class="grow"><label for=${'tin-'+q.id}>A tua nota (proposta ${r.prop})</label><input id=${'tin-'+q.id} type="number" step="0.5" min="0" max=${q.max} placeholder=${'Vazio = aceitar '+r.prop} value=${r.tin} onInput=${e=>setRs({...rs,[q.id]:{...r,tin:e.target.value}})}/></div>
@@ -1572,7 +1615,7 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
 
 
 /* migra as notas já dadas (histórico) para os novos priors, sem perder o que o motor aprendeu */
-const MD1=(()=>{try{const o=JSON.parse(localStorage.getItem('phalpd_model5')||'null');if(!o)return MD0;const r={};for(const k in MD0){const h=(o[k]&&o[k].h)||[];r[k]=h.length?train({...MD0[k],h:h.slice(0,-1),n:Math.max((o[k].n||1)-1,0)},h[h.length-1][0],h[h.length-1][1]):MD0[k]}return r}catch(e){return MD0}})();
+const MD1=(()=>{try{const o=JSON.parse(localStorage.getItem('phalpd_model5')||'null');if(!o)return MD0;const r={};for(const k in MD0){const h=(o[k]&&o[k].h)||[];r[k]=h.length?train({...MD0[k],h:h.slice(0,-1),n:Math.max((o[k].n||1)-1,0)},h[h.length-1][0],h[h.length-1][1],MD0[k]):MD0[k]}return r}catch(e){return MD0}})();
 function App(){
  const[pg,setPg]=useState('inicio'),[tid,setTid]=useState(null);
  const[cls,setCls]=usePersist('phalpd_cls',[{id:1,name:'12.º A',students:[]}]);
