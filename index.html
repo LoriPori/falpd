@@ -335,6 +335,16 @@ tbody tr:hover td{background:rgba(255,106,0,.08)}
 .wc{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--sf);border:1px solid var(--bd);border-left:4px solid var(--ok);border-radius:10px}
 .wc.warn{border-left-color:#e69500}.wc.err{border-left-color:var(--er)}
 .wc span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);font-weight:700}.wc b{font-size:16px}.wc small{font-size:12px;color:var(--mu);line-height:1.35}
+
+/* ===== Ditado + sessão ===== */
+.dict{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 8px}
+.dict .sp{flex:1}
+.recdot{width:9px;height:9px;border-radius:50%;background:var(--er);display:inline-block;animation:pulseSoft 1s infinite}
+.dint{min-height:20px;margin:0 0 6px;font-style:italic}
+.gsep{display:flex;align-items:center;gap:12px;margin:18px 0 4px;color:var(--mu);font-size:12.5px}
+.gsep:before,.gsep:after{content:"";flex:1;height:1px;background:var(--bd)}
+.gbtn{display:flex;justify-content:center;min-height:44px;margin-top:12px}
+.btn[disabled]{opacity:.6;cursor:wait}
 </style>
 </head>
 <body>
@@ -353,6 +363,45 @@ try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/li
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 function usePersist(k,d){const[s,set]=useState(()=>ld(k,d));useEffect(()=>{const id=setTimeout(()=>sv(k,s),400);return()=>clearTimeout(id)},[s]);return[s,set]}
+
+/* ===== Configuração da sessão (Cloudflare Worker + D1) — preenche estas duas linhas depois do deploy ===== */
+const API_URL='https://api.lourencoalvesfonseca2011.workers.dev';
+const GOOGLE_CLIENT_ID='8909802745038-289grk0o6u66t6imq59l83ohm3u74eu1.apps.googleusercontent.com';
+const CFG_OK=!/SEU-SUBDOMINIO/.test(API_URL),GOOGLE_OK=!/COLA-AQUI/.test(GOOGLE_CLIENT_ID);
+const api=async(path,{method='GET',body,token}={})=>{
+ const r=await fetch(API_URL+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined});
+ let j={};try{j=await r.json()}catch(e){}
+ if(!r.ok){const e=new Error(j.error||('Erro '+r.status));e.status=r.status;throw e}
+ return j};
+
+/* ===== Ditado da resposta do aluno (reconhecimento de voz do navegador, pt-PT) ===== */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const VOICE=[[/\bponto de interroga[cç][aã]o\b/gi,'?'],[/\bponto de exclama[cç][aã]o\b/gi,'!'],[/\bponto e v[ií]rgula\b/gi,';'],[/\bdois pontos\b/gi,':'],[/\breticências\b/gi,'…'],[/\bponto final\b/gi,'.'],[/\bv[ií]rgula\b/gi,','],[/\babrir par[eê]ntese\b/gi,'('],[/\bfechar par[eê]ntese\b/gi,')'],[/\babrir aspas\b/gi,'«'],[/\bfechar aspas\b/gi,'»'],[/\bnovo par[aá]grafo\b/gi,'\n'],[/\bnova linha\b/gi,'\n']];
+const voice=t=>{let x=t;VOICE.forEach(([r,p])=>{x=x.replace(r,p)});return x.replace(/\s+([,.;:!?…»)])/g,'$1').replace(/([«(])\s+/g,'$1').replace(/([.!?…])\s+([a-zà-ÿ])/g,(m,a,b)=>a+' '+b.toUpperCase()).trim()};
+const joinDict=(cur,chunk)=>{let c=voice(chunk);if(!c)return cur;if(!cur||/[.!?…\n]\s*$/.test(cur))c=c.charAt(0).toUpperCase()+c.slice(1);const glue=!cur||/[\s«(]$/.test(cur)||/^[,.;:!?…»)\n]/.test(c)?'':' ';return cur+glue+c};
+function AnswerInput({id,value,onChange,placeholder}){
+ const[mode,setMode]=useState('write'),[on,setOn]=useState(false),[itm,setItm]=useState(''),[err,setErr]=useState('');
+ const rec=useRef(null),want=useRef(false),acc=useRef(value);acc.current=value;
+ const stop=()=>{want.current=false;try{rec.current&&rec.current.stop()}catch(e){}setOn(false);setItm('')};
+ useEffect(()=>()=>{want.current=false;try{rec.current&&rec.current.abort()}catch(e){}},[]);
+ const start=()=>{
+  if(!SR){setErr('Este navegador não suporta ditado. Usa o Chrome, Edge ou Safari.');return}
+  setErr('');const r=new SR();rec.current=r;r.lang='pt-PT';r.continuous=true;r.interimResults=true;want.current=true;
+  r.onresult=ev=>{let fin='',im='';for(let i=ev.resultIndex;i<ev.results.length;i++){const t=ev.results[i][0].transcript;if(ev.results[i].isFinal)fin+=t;else im+=t}
+   if(fin){acc.current=joinDict(acc.current||'',fin);onChange(acc.current)}setItm(im)};
+  r.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){want.current=false;setErr('Permissão do microfone negada. Autoriza o microfone nas definições do navegador.')}else if(e.error==='audio-capture'){want.current=false;setErr('Não foi encontrado nenhum microfone.')}else if(e.error==='network'){want.current=false;setErr('Sem ligação ao serviço de voz do navegador.')}};
+  r.onend=()=>{if(want.current){try{r.start();return}catch(e){}}want.current=false;setOn(false);setItm('')};
+  try{r.start();setOn(true)}catch(e){setErr('Não foi possível iniciar o microfone.')}};
+ const pick=m=>{if(m==='write')stop();setMode(m);setErr('')};
+ return h`<div>
+  <div class="dict"><div class="seg" role="group" aria-label="Modo de entrada da resposta"><button type="button" aria-pressed=${mode==='write'} onClick=${()=>pick('write')}>Escrever</button><button type="button" aria-pressed=${mode==='dictate'} onClick=${()=>pick('dictate')}><${Ico} n="mic" s=${13}/> Ditar</button></div>
+  ${mode==='dictate'&&h`<span class="sp"></span><button type="button" class=${'btn s '+(on?'k':'')} onClick=${on?stop:start}>${on?h`<span class="recdot"></span> Parar ditado`:h`<${Ico} n="mic" s=${14}/> Iniciar ditado`}</button>`}</div>
+  ${mode==='dictate'&&h`<div class="mu dint" aria-live="polite">${on?(itm||'A ouvir…'):''}</div>`}
+  ${err&&h`<div class="note err" role="alert" style="margin-bottom:8px">${err}</div>`}
+  <textarea id=${id} value=${value} onInput=${e=>onChange(e.target.value)} placeholder=${placeholder}></textarea>
+  ${mode==='dictate'&&h`<p class="mu" style="margin-top:6px;font-size:12.5px">Dita a pontuação em voz alta: «vírgula», «ponto final», «ponto de interrogação», «dois pontos», «novo parágrafo». O reconhecimento de voz corrige a ortografia sozinho, por isso a ortografia de uma resposta ditada não reflete a do aluno. O Chrome e o Edge enviam o áudio ao serviço de voz do fabricante.</p>`}
+ </div>`;
+}
 
 /* ===== Motor FALPD: extração de padrões + classificador logístico com aprendizagem online (sem LLM) ===== */
 const STOP=new Set('que uma uns umas dos das nos nas por para com como mas aos foi ser sao ele ela seu sua lhe mais ja tambem pelo pela isso este esta esse essa entre sobre'.split(' '));
@@ -915,7 +964,7 @@ const IC={
  loop:'M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3',
  eye:'M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
  chart:'M18 20V10M12 20V4M6 20v-6',
- user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',
+ user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',mic:'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8',
  layers:'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
  alert:'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01'
 };
@@ -963,70 +1012,66 @@ function PdfInput({multi,items,onAdd,onDel,title,hint,compact,max=150000,preview
 
 function Clamp({text}){const[o,setO]=useState(false),long=text.length>260;return h`<div><div class=${'stmt'+(long&&!o?' cl':'')}>${text||'(sem enunciado)'}</div>${long&&h`<button class="lnk" onClick=${()=>setO(!o)}>${o?'Mostrar menos':'Ver enunciado completo'}</button>`}</div>`}
 
-/* ===== Dummy Page: Criar Conta / Iniciar Sessão ===== */
+/* ===== Sessão: criar conta / iniciar sessão (email + Google) ===== */
 function AuthPage({user,setUser,go}){
+ const authed=!!(user.loggedIn&&user.token);
  const[mode,setMode]=useState(user.hasAccount?'login':'register');
- const[email,setEmail]=useState(user.email||'');
- const[pass,setPass]=useState('');
- const[msg,setMsg]=useState('');
+ const[name,setName]=useState(''),[email,setEmail]=useState(user.email||''),[pass,setPass]=useState('');
+ const[msg,setMsg]=useState(''),[busy,setBusy]=useState(false);
+ const gref=useRef(null);
+ const enter=r=>{setUser({loggedIn:true,hasAccount:true,email:r.user.email,name:r.user.name||'',token:r.token});setPass('');go('inicio')};
 
- const submit=e=>{
-  e.preventDefault();
-  if(!email.trim()||!pass.trim()){setMsg('Preenche o email e a palavra-passe.');return}
-  setUser({loggedIn:true,hasAccount:true,email:email.trim(),mode});
-  setPass('');
-  setMsg(mode==='register'?'Conta criada e sessão iniciada com sucesso!':'Sessão iniciada com sucesso!');
- };
+ useEffect(()=>{
+  if(authed||!CFG_OK||!GOOGLE_OK)return;
+  let dead=false;
+  const init=()=>{const g=window.google;if(dead||!g||!g.accounts||!gref.current)return;
+   g.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:async resp=>{setBusy(true);setMsg('');try{enter(await api('/api/auth/google',{method:'POST',body:{credential:resp.credential}}))}catch(e){setMsg(e.message)}setBusy(false)}});
+   g.accounts.id.renderButton(gref.current,{theme:'outline',size:'large',shape:'pill',text:'continue_with',locale:'pt-PT',width:280})};
+  if(window.google&&window.google.accounts)init();
+  else{let sc=document.getElementById('gsi');if(!sc){sc=document.createElement('script');sc.id='gsi';sc.src='https://accounts.google.com/gsi/client';sc.async=true;document.head.appendChild(sc)}sc.addEventListener('load',init)}
+  return()=>{dead=true};
+ },[authed,mode]);
 
- const toggleStatus=()=>{
-  if(user.loggedIn){
-   setUser({...user,loggedIn:false});
-   setMsg('Sessão terminada. O botão no topo mudou para «Iniciar sessão».');
-  }else if(user.hasAccount){
-   setUser({loggedIn:false,hasAccount:false,email:''});
-   setMsg('Estado reposto para novo utilizador («Criar conta / Iniciar sessão»).');
-  }
- };
+ const submit=async e=>{
+  e.preventDefault();setMsg('');
+  if(!CFG_OK){setMsg('Falta configurar o API_URL no topo do script (ver guia do Cloudflare Worker).');return}
+  if(mode==='register'&&pass.length<8){setMsg('A palavra-passe deve ter pelo menos 8 caracteres.');return}
+  setBusy(true);
+  try{enter(await api(mode==='register'?'/api/auth/register':'/api/auth/login',{method:'POST',body:{email:email.trim(),password:pass,name:name.trim()}}))}catch(er){setMsg(er.message)}
+  setBusy(false)};
+
+ const logout=async()=>{
+  try{await api('/api/logout',{method:'POST',token:user.token})}catch(e){}
+  try{window.google&&window.google.accounts.id.disableAutoSelect()}catch(e){}
+  setUser({loggedIn:false,hasAccount:true,email:user.email||'',name:'',token:''});setMsg('')};
 
  return h`<div class="page-anim">
   <div class="auth-wrap">
    <div style="text-align:center">
     <div class="fic" style="margin:0 auto 12px;width:52px;height:52px"><${Ico} n="user" s=${26}/></div>
-    <div class="eyebrow">Conta de Docente · Dummy Page</div>
-    <h2>${user.loggedIn?'Sessão Ativa':mode==='register'?'Criar conta':'Iniciar sessão'}</h2>
-    <p class="mu" style="margin-top:6px">Página de demonstração de autenticação. O botão no cabeçalho adapta-se ao teu estado.</p>
+    <div class="eyebrow">Conta de Docente</div>
+    <h2>${authed?'Sessão ativa':mode==='register'?'Criar conta':'Iniciar sessão'}</h2>
+    <p class="mu" style="margin-top:6px">${authed?'Estás autenticado como '+user.email+'.':'A FALPD só funciona com a sessão iniciada.'}</p>
    </div>
 
+   ${authed?h`<div style="margin-top:22px;display:grid;gap:10px">
+     <button type="button" class="btn lg" style="width:100%" onClick=${()=>go('inicio')}>Ir para o início</button>
+     <button type="button" class="btn k" style="width:100%" onClick=${logout}>Terminar sessão</button></div>`
+   :h`${!CFG_OK&&h`<div class="note warn" style="margin-top:18px">Sessão por configurar: preenche <b>API_URL</b> (e <b>GOOGLE_CLIENT_ID</b>) no topo do script depois de fazeres o deploy do Worker.</div>`}
    <div class="auth-tabs">
     <button type="button" class=${mode==='register'?'on':''} onClick=${()=>{setMode('register');setMsg('')}}>Criar conta</button>
     <button type="button" class=${mode==='login'?'on':''} onClick=${()=>{setMode('login');setMsg('')}}>Iniciar sessão</button>
    </div>
-
    <form onSubmit=${submit} style="display:grid;gap:14px">
-    <div>
-     <label for="auth-email">Email institucional ou pessoal</label>
-     <input id="auth-email" type="email" required placeholder="professor@escola.pt" value=${email} onInput=${e=>setEmail(e.target.value)}/>
-    </div>
-    <div>
-     <label for="auth-pass">Palavra-passe</label>
-     <input id="auth-pass" type="password" required placeholder="••••••••" value=${pass} onInput=${e=>setPass(e.target.value)}/>
-    </div>
-    <button type="submit" class="btn lg" style="width:100%;margin-top:4px">
-     <${Ico} n="check" s=${18}/> ${mode==='register'?'Criar conta':'Iniciar sessão'}
-    </button>
+    ${mode==='register'&&h`<div><label for="auth-name">Nome</label><input id="auth-name" type="text" autocomplete="name" maxlength="80" placeholder="Maria Silva" value=${name} onInput=${e=>setName(e.target.value)}/></div>`}
+    <div><label for="auth-email">Email institucional ou pessoal</label>
+     <input id="auth-email" type="email" required autocomplete="email" placeholder="professor@escola.pt" value=${email} onInput=${e=>setEmail(e.target.value)}/></div>
+    <div><label for="auth-pass">Palavra-passe</label>
+     <input id="auth-pass" type="password" required autocomplete=${mode==='register'?'new-password':'current-password'} minlength=${mode==='register'?8:1} placeholder=${mode==='register'?'Pelo menos 8 caracteres':'••••••••'} value=${pass} onInput=${e=>setPass(e.target.value)}/></div>
+    <button type="submit" class="btn lg" disabled=${busy} style="width:100%;margin-top:4px"><${Ico} n="check" s=${18}/> ${busy?'A aguardar…':mode==='register'?'Criar conta':'Iniciar sessão'}</button>
    </form>
-
-   ${msg&&h`<div class="note ok" style="margin-top:14px">${msg}</div>`}
-
-   <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span class="chip ${user.loggedIn?'ok':'or'}">
-     Estado: ${user.loggedIn?'Sessão iniciada ('+user.email+')':user.hasAccount?'Conta criada (sessão desligada)':'Sem conta'}
-    </span>
-    ${(user.loggedIn||user.hasAccount)&&h`<button type="button" class="btn k s" onClick=${toggleStatus}>
-     ${user.loggedIn?'Terminar sessão':'Repor estado inicial'}
-    </button>`}
-   </div>
-   <p style="margin-top:14px;text-align:center"><button type="button" class="lnk" onClick=${()=>go('inicio')}>← Voltar ao início</button></p>
+   ${GOOGLE_OK&&h`<div class="gsep">ou</div><div class="gbtn" ref=${gref}></div>`}
+   ${msg&&h`<div class="note err" role="alert" style="margin-top:14px">${msg}</div>`}`}
   </div>
  </div>`;
 }
@@ -1524,7 +1569,7 @@ function Correct({cls,setCls,crit,m,setM,st,setSt,llm,setLlm,tests,setTests,tid,
   ${ed?h`<div><label>Enunciado</label><textarea value=${q.text} onInput=${e=>upQ(g.id,q.id,{text:e.target.value})}></textarea></div>`:h`<${Clamp} text=${q.text}/>`}
   <div class="two"><div><div class="lh"><label for=${'m-'+q.id}>Resposta-modelo</label><span>igual para todos os alunos</span></div><textarea id=${'m-'+q.id} value=${q.model} onInput=${e=>upQ(g.id,q.id,{model:e.target.value})} placeholder="Escreve ou importa automaticamente do PDF..."></textarea></div>
   <div><div class="lh"><label for=${'a-'+q.id}>Resposta do aluno</label>${si&&h`<span>${wc(a)} palavras${rg?' · pedidas '+rg[0]+'–'+rg[1]:''}</span>`}</div>
-  ${si?h`<textarea id=${'a-'+q.id} value=${a} onInput=${e=>setAns(q.id,e.target.value)} placeholder="Cola a resposta ou usa a Importação em Lote acima"></textarea>`:h`<div class="note">Escolhe um aluno na barra acima ou faz Importação em Lote de PDFs.</div>`}</div></div>
+  ${si?h`<${AnswerInput} id=${'a-'+q.id} value=${a} onChange=${v=>setAns(q.id,v)} placeholder="Escreve, dita ou cola a resposta, ou usa a Importação em Lote acima"/>`:h`<div class="note">Escolhe um aluno na barra acima ou faz Importação em Lote de PDFs.</div>`}</div></div>
   <details class="adv" open=${!!q.chave}><summary>Elementos essenciais (opcional)</summary><p class="mu">Um por linha; sinónimos com | ; peso com :: (ex.: comparação | símile :: 3). Se estiver vazio, usa as figuras de estilo da resposta-modelo.</p>
   <textarea style=${{minHeight:'70px'}} value=${q.chave||''} onInput=${e=>upQ(g.id,q.id,{chave:e.target.value})}></textarea></details>
   ${r&&Res(q,r)}</div></article>`};
@@ -1624,31 +1669,31 @@ function App(){
  const[llm,setLlm]=usePersist('phalpd_llm',{prov:'gemini',key:'',model:''});
  const[docs,setDocs]=usePersist('phalpd_docs',{crit:[]});
  const[tests,setTests]=usePersist('phalpd_tests',[]);
- const[user,setUser]=usePersist('phalpd_user',{loggedIn:false,hasAccount:false,email:''});
+ const[user,setUser]=usePersist('phalpd_user',{loggedIn:false,hasAccount:false,email:'',name:'',token:''});
+ const authed=!!(user.loggedIn&&user.token);
 
  const crit=docs.crit||[],ctext=crit.map(d=>d.text).join('\n'),pp=ptPages(ctext);
  const nfb=Object.values(m).reduce((a,x)=>a+x.n,0);
 
  useEffect(()=>{const p=e=>e.preventDefault();window.addEventListener('dragover',p);window.addEventListener('drop',p);return()=>{window.removeEventListener('dragover',p);window.removeEventListener('drop',p)}},[]);
+ /* valida a sessão no servidor ao abrir e de 10 em 10 minutos; só um 401 termina a sessão (sem rede, não bloqueia a aula) */
+ useEffect(()=>{if(!authed)return;let dead=false;const chk=async()=>{try{await api('/api/me',{token:user.token})}catch(e){if(!dead&&e.status===401)setUser({loggedIn:false,hasAccount:true,email:user.email||'',name:'',token:''})}};chk();const id=setInterval(chk,600000);return()=>{dead=true;clearInterval(id)}},[authed,user.token]);
  const go=p=>{setPg(p);window.scrollTo({top:0,behavior:'smooth'})};
 
  /* Texto do botão de conta muda consoante o estado do utilizador */
- const authLabel=user.loggedIn
-  ?`Sessão: ${user.email.split('@')[0]}`
-  :user.hasAccount
-   ?'Iniciar sessão'
-   :'Criar conta / Iniciar sessão';
+ const authLabel=authed?`Sessão: ${user.name?user.name.split(' ')[0]:(user.email||'').split('@')[0]}`:'Iniciar sessão';
 
  return h`<${React.Fragment}>
  <header class="top">
   <button class="brand" onClick=${()=>go('inicio')} aria-label="FALPD — início"><${Logo} s=${36}/><span>F<b>ALPD</b></span></button>
-  <nav class="nav" aria-label="Principal">${NAV.map(([k,t,i])=>h`<button key=${k} aria-current=${pg===k?'page':undefined} onClick=${()=>go(k)}><${Ico} n=${i}/><span>${t}</span></button>`)}</nav>
-  <button class=${'auth-btn'+(user.loggedIn?' on':'')} onClick=${()=>go('auth')} aria-current=${pg==='auth'?'page':undefined}>
+  <nav class="nav" aria-label="Principal">${authed&&NAV.map(([k,t,i])=>h`<button key=${k} aria-current=${pg===k?'page':undefined} onClick=${()=>go(k)}><${Ico} n=${i}/><span>${t}</span></button>`)}</nav>
+  <button class=${'auth-btn'+(authed?' on':'')} onClick=${()=>go('auth')} aria-current=${pg==='auth'?'page':undefined}>
    <${Ico} n="user" s=${16}/><span>${authLabel}</span>
   </button>
  </header>
- <main class="wrap" key=${pg}>
-  ${pg==='inicio'?h`<${Home} go=${go} n=${nfb} crit=${crit.length} cls=${cls} tests=${tests}/>`
+ <main class="wrap" key=${authed?pg:'lock'}>
+  ${!authed?h`<${AuthPage} user=${user} setUser=${setUser} go=${go}/>`
+  :pg==='inicio'?h`<${Home} go=${go} n=${nfb} crit=${crit.length} cls=${cls} tests=${tests}/>`
   :pg==='dash'?h`<${Dash} cls=${cls} setCls=${setCls} tests=${tests} setTests=${setTests} m=${m} crit=${ctext} go=${go} setTid=${setTid}/>`
   :pg==='crit'?h`<${CritPage} crit=${crit} setDocs=${setDocs} pp=${pp}/>`
   :pg==='tests'?h`<${Tests} tests=${tests} setTests=${setTests} cls=${cls} setTid=${setTid} go=${go} m=${m} crit=${ctext}/>`
