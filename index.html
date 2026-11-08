@@ -366,7 +366,7 @@ function usePersist(k,d){const[s,set]=useState(()=>ld(k,d));useEffect(()=>{const
 
 /* ===== Configuração da sessão (Cloudflare Worker + D1) — preenche estas duas linhas depois do deploy ===== */
 const API_URL='https://api.lourencoalvesfonseca2011.workers.dev';
-const GOOGLE_CLIENT_ID='8909802745038-289grk0o6u66t6imq59l83ohm3u74eu1.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID='909802745038-289grk0o6u66t6imq59l83ohm3u74eu1.apps.googleusercontent.com';
 const CFG_OK=!/SEU-SUBDOMINIO/.test(API_URL),GOOGLE_OK=!/COLA-AQUI/.test(GOOGLE_CLIENT_ID);
 const api=async(path,{method='GET',body,token}={})=>{
  const r=await fetch(API_URL+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined});
